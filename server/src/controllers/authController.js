@@ -28,13 +28,11 @@ export const loginUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error(
-      "Login controller error:",
-      error
-    );
+    console.error("FULL LOGIN ERROR:");
+    console.error(error);
 
     return res.status(500).json({
-      message: "Internal server error",
+    message: error.message,
     });
   }
 };

@@ -1,28 +1,60 @@
 import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../services/firebase";
+
+import {
+  auth,
+  googleProvider,
+} from "../../services/firebase";
+
 import { useNavigate } from "react-router-dom";
+
+import api from "../../services/api";
 
 function LoginPage() {
   const navigate = useNavigate();
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
+      // Firebase Login
+      const result = await signInWithPopup(
+        auth,
+        googleProvider
+      );
+
       const user = result.user;
 
-      console.log("Logged in:", user);
+      // Firebase token
+      const token = await user.getIdToken();
+
+      console.log("TOKEN:", token);
+
+      // Backend login request
+      const response = await api.post(
+        "/auth/login",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        "Backend Response:",
+        response.data
+      );
 
       navigate("/dashboard");
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("LOGIN ERROR:");
+      console.error(error);
     }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex h-screen items-center justify-center bg-gray-100">
       <button
         onClick={handleGoogleLogin}
-        className="px-6 py-3 bg-blue-600 text-white rounded-lg"
+        className="rounded-lg bg-blue-600 px-6 py-3 text-white"
       >
         Sign in with Google
       </button>
