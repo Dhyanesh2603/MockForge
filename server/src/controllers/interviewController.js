@@ -1,12 +1,13 @@
 import { createInterview } from "../repositories/interviewRepository.js";
 
+import { generateInterviewQuestions } from "../services/geminiService.js";
+
 export const createInterviewSession =
   async (req, res) => {
     try {
       const { role, techStack, difficulty } =
         req.body;
 
-      // Firebase user from auth middleware
       const firebaseUser = req.user;
 
       // Validation
@@ -20,6 +21,7 @@ export const createInterviewSession =
         });
       }
 
+      // Create interview in DB
       const interview =
         await createInterview({
           userId: firebaseUser.uid,
@@ -28,10 +30,21 @@ export const createInterviewSession =
           difficulty,
         });
 
+      // Generate AI questions
+      const questions =
+        await generateInterviewQuestions({
+          role,
+          techStack,
+          difficulty,
+        });
+
       return res.status(201).json({
         message:
           "Interview session created successfully",
+
         interview,
+
+        questions,
       });
     } catch (error) {
       console.error(
