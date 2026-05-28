@@ -10,6 +10,8 @@ import LoginPage from "../pages/auth/LoginPage";
 
 import DashboardPage from "../pages/dashboard/DashboardPage";
 
+import CreateInterviewPage from "../pages/interviews/CreateInterviewPage";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -27,6 +29,13 @@ function AppRoutes() {
         <Route
           path="/dashboard"
           element={<DashboardPage />}
+        />
+
+        <Route
+          path="/interviews/create"
+          element={
+            <CreateInterviewPage />
+          }
         />
       </Routes>
     </BrowserRouter>
