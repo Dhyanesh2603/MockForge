@@ -12,6 +12,8 @@ import DashboardPage from "../pages/dashboard/DashboardPage";
 
 import CreateInterviewPage from "../pages/interviews/CreateInterviewPage";
 
+import InterviewDetailsPage from "../pages/interviews/InterviewDetailsPage";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -29,6 +31,11 @@ function AppRoutes() {
         <Route
           path="/dashboard"
           element={<DashboardPage />}
+        />
+
+        <Route
+          path="/interviews/:id"
+          element={<InterviewDetailsPage />}
         />
 
         <Route
