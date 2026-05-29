@@ -63,15 +63,15 @@ function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="mx-auto max-w-5xl">
-        <div className="mb-8 flex items-center justify-between">
+    <div className="min-h-screen bg-gray-200 p-10">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-10 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-5xl font-bold text-black">
               Dashboard
             </h1>
 
-            <p className="text-gray-600">
+            <p className="mt-2 text-lg text-gray-700">
               Welcome{" "}
               {user?.displayName}
             </p>
@@ -79,40 +79,52 @@ function DashboardPage() {
 
           <Link
             to="/create-interview"
-            className="rounded-lg bg-blue-600 px-5 py-3 text-white"
+            className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white"
           >
             Create Interview
           </Link>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          {interviews.map((interview) => (
-            <div
-              key={interview.id}
-              className="rounded-lg bg-white p-6 shadow"
-            >
-              <h2 className="mb-2 text-2xl font-semibold">
-                {interview.role}
-              </h2>
+        <h2 className="mb-6 text-3xl font-bold text-black">
+          Interview History
+        </h2>
 
-              <p className="mb-2 text-gray-600">
-                {interview.tech_stack}
-              </p>
-
-              <p className="mb-4 text-gray-600">
-                Difficulty:{" "}
-                {interview.difficulty}
-              </p>
-
-              <Link
-                to={`/interviews/${interview.id}`}
-                className="inline-block rounded-lg bg-black px-4 py-2 text-white"
+        {interviews.length === 0 ? (
+          <div className="rounded-xl bg-white p-10 shadow-2xl">
+            <p className="text-lg">
+              No interviews found
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {interviews.map((interview) => (
+              <div
+                key={interview.id}
+                className="rounded-2xl border-2 border-black bg-white p-6 shadow-2xl"
               >
-                Open Interview
-              </Link>
-            </div>
-          ))}
-        </div>
+                <h3 className="mb-4 text-3xl font-bold text-black">
+                  {interview.role}
+                </h3>
+
+                <p className="mb-3 text-lg text-gray-700">
+                  {interview.tech_stack}
+                </p>
+
+                <p className="mb-6 text-lg text-gray-700">
+                  Difficulty:{" "}
+                  {interview.difficulty}
+                </p>
+
+                <Link
+                  to={`/interviews/${interview.id}`}
+                  className="inline-block rounded-lg bg-black px-5 py-3 text-white"
+                >
+                  Open Interview
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
