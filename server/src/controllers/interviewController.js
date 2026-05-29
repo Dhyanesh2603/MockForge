@@ -1,5 +1,7 @@
 import { createInterview } from "../repositories/interviewRepository.js";
 
+import { saveInterviewQuestions } from "../repositories/questionRepository.js";
+
 import { generateInterviewQuestions } from "../services/geminiService.js";
 
 export const createInterviewSession =
@@ -10,7 +12,6 @@ export const createInterviewSession =
 
       const firebaseUser = req.user;
 
-      // Validation
       if (
         !role ||
         !techStack ||
@@ -21,7 +22,7 @@ export const createInterviewSession =
         });
       }
 
-      // Create interview in DB
+      // Create interview
       const interview =
         await createInterview({
           userId: firebaseUser.uid,
@@ -30,13 +31,19 @@ export const createInterviewSession =
           difficulty,
         });
 
-      // Generate AI questions
+      // Generate questions
       const questions =
         await generateInterviewQuestions({
           role,
           techStack,
           difficulty,
         });
+
+      // Save questions
+      await saveInterviewQuestions(
+        interview.id,
+        questions
+      );
 
       return res.status(201).json({
         message:
