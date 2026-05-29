@@ -2,12 +2,14 @@ import { useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { auth } from "../../services/firebase";
+import { useAuth } from "../../context/AuthContext";
 
 import api from "../../services/api";
 
 function CreateInterviewPage() {
   const navigate = useNavigate();
+
+  const { user } = useAuth();
 
   const [role, setRole] = useState("");
 
@@ -15,7 +17,7 @@ function CreateInterviewPage() {
     useState("");
 
   const [difficulty, setDifficulty] =
-    useState("medium");
+    useState("Easy");
 
   const [loading, setLoading] =
     useState(false);
@@ -28,15 +30,9 @@ function CreateInterviewPage() {
     try {
       setLoading(true);
 
-      // Current Firebase user
-      const currentUser =
-        auth.currentUser;
-
-      // Firebase token
       const token =
-        await currentUser.getIdToken();
+        await user.getIdToken();
 
-      // API request
       const response = await api.post(
         "/interviews",
         {
@@ -56,11 +52,9 @@ function CreateInterviewPage() {
         response.data
       );
 
-      alert(
-        "Interview created successfully"
+      navigate(
+        `/interviews/${response.data.interview.id}`
       );
-
-      navigate("/dashboard");
     } catch (error) {
       console.error(
         "CREATE INTERVIEW ERROR:"
@@ -73,15 +67,15 @@ function CreateInterviewPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <div className="mx-auto max-w-2xl rounded-lg bg-white p-8 shadow">
+    <div className="min-h-screen bg-gray-100 p-8">
+      <div className="mx-auto max-w-xl rounded-lg bg-white p-6 shadow">
         <h1 className="mb-6 text-3xl font-bold">
           Create Interview
         </h1>
 
         <form
           onSubmit={handleCreateInterview}
-          className="space-y-5"
+          className="space-y-4"
         >
           <div>
             <label className="mb-2 block font-medium">
@@ -90,12 +84,13 @@ function CreateInterviewPage() {
 
             <input
               type="text"
-              placeholder="Frontend Developer"
               value={role}
               onChange={(e) =>
                 setRole(e.target.value)
               }
+              placeholder="Frontend Developer"
               className="w-full rounded-lg border p-3"
+              required
             />
           </div>
 
@@ -106,14 +101,15 @@ function CreateInterviewPage() {
 
             <input
               type="text"
-              placeholder="React, Node.js, PostgreSQL"
               value={techStack}
               onChange={(e) =>
                 setTechStack(
                   e.target.value
                 )
               }
+              placeholder="React, Node.js"
               className="w-full rounded-lg border p-3"
+              required
             />
           </div>
 
@@ -131,15 +127,15 @@ function CreateInterviewPage() {
               }
               className="w-full rounded-lg border p-3"
             >
-              <option value="easy">
+              <option value="Easy">
                 Easy
               </option>
 
-              <option value="medium">
+              <option value="Medium">
                 Medium
               </option>
 
-              <option value="hard">
+              <option value="Hard">
                 Hard
               </option>
             </select>
