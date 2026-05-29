@@ -1,4 +1,7 @@
-import { createInterview } from "../repositories/interviewRepository.js";
+import {
+  createInterview,
+  getUserInterviews,
+} from "../repositories/interviewRepository.js";
 
 import { saveInterviewQuestions } from "../repositories/questionRepository.js";
 
@@ -22,7 +25,6 @@ export const createInterviewSession =
         });
       }
 
-      // Create interview
       const interview =
         await createInterview({
           userId: firebaseUser.uid,
@@ -31,7 +33,6 @@ export const createInterviewSession =
           difficulty,
         });
 
-      // Generate questions
       const questions =
         await generateInterviewQuestions({
           role,
@@ -39,7 +40,6 @@ export const createInterviewSession =
           difficulty,
         });
 
-      // Save questions
       await saveInterviewQuestions(
         interview.id,
         questions
@@ -56,6 +56,32 @@ export const createInterviewSession =
     } catch (error) {
       console.error(
         "CREATE INTERVIEW ERROR:"
+      );
+
+      console.error(error);
+
+      return res.status(500).json({
+        message: error.message,
+      });
+    }
+  };
+
+export const fetchUserInterviews =
+  async (req, res) => {
+    try {
+      const firebaseUser = req.user;
+
+      const interviews =
+        await getUserInterviews(
+          firebaseUser.uid
+        );
+
+      return res.status(200).json({
+        interviews,
+      });
+    } catch (error) {
+      console.error(
+        "FETCH INTERVIEWS ERROR:"
       );
 
       console.error(error);
