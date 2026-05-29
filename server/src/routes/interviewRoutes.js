@@ -4,6 +4,7 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 import {
   createInterviewSession,
+  fetchUserInterviews,
 } from "../controllers/interviewController.js";
 
 import {
@@ -16,6 +17,12 @@ router.post(
   "/",
   authMiddleware,
   createInterviewSession
+);
+
+router.get(
+  "/",
+  authMiddleware,
+  fetchUserInterviews
 );
 
 router.get(

@@ -31,3 +31,20 @@ export const createInterview = async ({
 
   return result.rows[0];
 };
+
+export const getUserInterviews =
+  async (userId) => {
+    const query = `
+      SELECT *
+      FROM interviews
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+    `;
+
+    const result = await pool.query(
+      query,
+      [userId]
+    );
+
+    return result.rows;
+  };
