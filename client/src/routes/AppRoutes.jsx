@@ -34,14 +34,14 @@ function AppRoutes() {
         />
 
         <Route
-          path="/interviews/:id"
-          element={<InterviewDetailsPage />}
+          path="/create-interview"
+          element={<CreateInterviewPage />}
         />
 
         <Route
-          path="/interviews/create"
+          path="/interviews/:id"
           element={
-            <CreateInterviewPage />
+            <InterviewDetailsPage />
           }
         />
       </Routes>
