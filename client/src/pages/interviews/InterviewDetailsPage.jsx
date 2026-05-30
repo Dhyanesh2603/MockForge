@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { useParams } from "react-router-dom";
+import {
+  useParams,
+  useNavigate,
+} from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -8,6 +11,8 @@ import api from "../../services/api";
 
 function InterviewDetailsPage() {
   const { id } = useParams();
+
+  const navigate = useNavigate();
 
   const { user } = useAuth();
 
@@ -26,18 +31,21 @@ function InterviewDetailsPage() {
   const [answers, setAnswers] =
     useState({});
 
+  const [submitting, setSubmitting] =
+    useState(false);
+
   const getInitialTime = () => {
     const savedTime = localStorage.getItem(
-        `timer-${id}`
+      `timer-${id}`
     );
 
     return savedTime
-        ? Number(savedTime)
-        : 30 * 60;
-    };
+      ? Number(savedTime)
+      : 30 * 60;
+  };
 
-    const [timeLeft, setTimeLeft] =
-        useState(getInitialTime);
+  const [timeLeft, setTimeLeft] =
+    useState(getInitialTime);
 
   const [submitted, setSubmitted] =
     useState(false);
@@ -49,7 +57,6 @@ function InterviewDetailsPage() {
           const token =
             await user.getIdToken();
 
-          // Interview details
           const interviewResponse =
             await api.get(
               `/interviews/${id}`,
@@ -70,7 +77,6 @@ function InterviewDetailsPage() {
               .questions
           );
 
-          // Answers
           const answersResponse =
             await api.get(
               `/answers/${id}`,
@@ -104,37 +110,38 @@ function InterviewDetailsPage() {
     }
   }, [id, user]);
 
-  // TIMER
   useEffect(() => {
     if (submitted) return;
 
     const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-            const updatedTime = prev - 1;
+      setTimeLeft((prev) => {
+        const updatedTime =
+          prev - 1;
 
-            localStorage.setItem(
-            `timer-${id}`,
-            updatedTime
-            );
+        localStorage.setItem(
+          `timer-${id}`,
+          updatedTime
+        );
 
-            if (updatedTime <= 0) {
-                clearInterval(timer);
+        if (updatedTime <= 0) {
+          clearInterval(timer);
 
-                handleSubmitInterview();
+          handleSubmitInterview();
 
-                localStorage.removeItem(
-                    `timer-${id}`
-                );
+          localStorage.removeItem(
+            `timer-${id}`
+          );
 
-                return 0;
-            }
+          return 0;
+        }
 
         return updatedTime;
-        });
+      });
     }, 1000);
 
     return () => clearInterval(timer);
   }, [submitted, id]);
+
   const currentQuestion =
     questions[currentQuestionIndex];
 
@@ -149,16 +156,22 @@ function InterviewDetailsPage() {
     }
   };
 
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(
-        currentQuestionIndex - 1
-      );
-    }
-  };
+  const handlePreviousQuestion =
+    () => {
+      if (
+        currentQuestionIndex > 0
+      ) {
+        setCurrentQuestionIndex(
+          currentQuestionIndex - 1
+        );
+      }
+    };
 
   const saveAnswerToBackend =
-    async (questionId, answerText) => {
+    async (
+      questionId,
+      answerText
+    ) => {
       try {
         const token =
           await user.getIdToken();
@@ -185,36 +198,81 @@ function InterviewDetailsPage() {
       }
     };
 
-  const handleAnswerChange = async (
-    value
-  ) => {
-    const updatedAnswers = {
-      ...answers,
+  const handleAnswerChange =
+    async (value) => {
+      const updatedAnswers = {
+        ...answers,
 
-      [currentQuestion.id]: value,
+        [currentQuestion.id]:
+          value,
+      };
+
+      setAnswers(updatedAnswers);
+
+      await saveAnswerToBackend(
+        currentQuestion.id,
+        value
+      );
     };
 
-    setAnswers(updatedAnswers);
+  const handleSubmitInterview =
+    async () => {
+      try {
+        setSubmitting(true);
 
-    await saveAnswerToBackend(
-      currentQuestion.id,
-      value
-    );
-  };
+        const token =
+          await user.getIdToken();
 
-  const handleSubmitInterview = () => {
-    setSubmitted(true);
+        const response =
+          await api.post(
+            "/results/submit",
+            {
+              interviewId: id,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
-    localStorage.removeItem(
-        `timer-${id}`
-    );
+        console.log(
+          "EVALUATION RESPONSE:"
+        );
 
-    alert(
-        "Interview submitted successfully!"
-    );
-  };
+        console.log(
+          response.data
+        );
 
-  const formatTime = (seconds) => {
+        setSubmitted(true);
+
+        localStorage.removeItem(
+          `timer-${id}`
+        );
+
+        navigate(`/results/${id}`);
+
+        alert(
+          "Interview evaluated successfully!"
+        );
+      } catch (error) {
+        console.error(
+          "SUBMIT INTERVIEW ERROR:"
+        );
+
+        console.error(error);
+
+        alert(
+          "Failed to evaluate interview"
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+  const formatTime = (
+    seconds
+  ) => {
     const mins = Math.floor(
       seconds / 60
     );
@@ -237,7 +295,6 @@ function InterviewDetailsPage() {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="mx-auto max-w-4xl rounded-2xl bg-white p-8 shadow-xl">
-        {/* TOP SECTION */}
         <div className="mb-8 flex items-start justify-between">
           <div>
             <h1 className="mb-2 text-4xl font-bold">
@@ -250,11 +307,12 @@ function InterviewDetailsPage() {
 
             <p className="text-lg text-gray-600">
               Difficulty:{" "}
-              {interview.difficulty}
+              {
+                interview.difficulty
+              }
             </p>
           </div>
 
-          {/* TIMER */}
           <div
             className={`rounded-xl px-6 py-4 text-2xl font-bold ${
               timeLeft < 300
@@ -266,18 +324,19 @@ function InterviewDetailsPage() {
           </div>
         </div>
 
-        {/* QUESTION HEADER */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-2xl font-semibold">
             Question{" "}
-            {currentQuestionIndex + 1} of{" "}
-            {questions.length}
+            {currentQuestionIndex +
+              1}{" "}
+            of {questions.length}
           </h2>
 
           <div className="rounded-full bg-blue-100 px-4 py-2 text-blue-700">
             Progress:{" "}
             {Math.round(
-              ((currentQuestionIndex + 1) /
+              ((currentQuestionIndex +
+                1) /
                 questions.length) *
                 100
             )}
@@ -285,7 +344,6 @@ function InterviewDetailsPage() {
           </div>
         </div>
 
-        {/* QUESTION */}
         <div className="rounded-2xl border-2 border-gray-200 p-6">
           <p className="mb-6 text-xl font-medium leading-relaxed">
             {
@@ -297,10 +355,13 @@ function InterviewDetailsPage() {
             rows="8"
             placeholder="Type your answer here..."
             value={
-              answers[currentQuestion?.id] ||
-              ""
+              answers[
+                currentQuestion?.id
+              ] || ""
             }
-            disabled={submitted}
+            disabled={
+              submitted
+            }
             onChange={(e) =>
               handleAnswerChange(
                 e.target.value
@@ -310,14 +371,14 @@ function InterviewDetailsPage() {
           />
         </div>
 
-        {/* BUTTONS */}
         <div className="mt-8 flex items-center justify-between">
           <button
             onClick={
               handlePreviousQuestion
             }
             disabled={
-              currentQuestionIndex === 0
+              currentQuestionIndex ===
+              0
             }
             className="rounded-lg bg-gray-300 px-6 py-3 disabled:opacity-50"
           >
@@ -329,10 +390,15 @@ function InterviewDetailsPage() {
               onClick={
                 handleSubmitInterview
               }
-              disabled={submitted}
+              disabled={
+                submitted ||
+                submitting
+              }
               className="rounded-lg bg-green-600 px-6 py-3 text-white disabled:opacity-50"
             >
-              {submitted
+              {submitting
+                ? "Evaluating..."
+                : submitted
                 ? "Submitted"
                 : "Submit Interview"}
             </button>
@@ -343,7 +409,8 @@ function InterviewDetailsPage() {
               }
               disabled={
                 currentQuestionIndex ===
-                questions.length - 1
+                questions.length -
+                  1
               }
               className="rounded-lg bg-blue-600 px-6 py-3 text-white disabled:opacity-50"
             >
