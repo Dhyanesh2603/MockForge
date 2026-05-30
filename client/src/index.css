@@ -1,8 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #f3f4f6;
-  font-family: Arial, Helvetica, sans-serif;
+/* ─── CSS Variables (theme tokens) ─────────────────────── */
+:root {
+  --bg:        #f8fafc;
+  --bg2:       #f1f5f9;
+  --surface:   rgba(255,255,255,0.85);
+  --border:    rgba(0,0,0,0.08);
+  --text:      #0f172a;
+  --text2:     #475569;
+  --text3:     #94a3b8;
+  --forge:     #0ba5ec;
+  --forge-dim: rgba(11,165,236,0.15);
 }
+
+.dark {
+  --bg:        #0a0f1a;
+  --bg2:       #0f1520;
+  --surface:   rgba(255,255,255,0.04);
+  --border:    rgba(255,255,255,0.08);
+  --text:      #f1f5f9;
+  --text2:     #94a3b8;
+  --text3:     #475569;
+  --forge:     #36bffa;
+  --forge-dim: rgba(11,165,236,0.2);
+}
+
+/* ─── Base ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+body {
+  margin: 0; padding: 0;
+  font-family: 'DM Sans', sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: rgba(11,165,236,0.4); border-radius: 999px; }
+::selection { background: rgba(11,165,236,0.3); color: #fff; }
+
+/* ─── Semantic text helpers ─────────────────────────────── */
+.t-primary   { color: var(--text); }
+.t-secondary { color: var(--text2); }
+.t-muted     { color: var(--text3); }
+.t-forge     { color: var(--forge); }
+.bg-page     { background-color: var(--bg); }
+.bg-surface  { background: var(--surface); }
+
+/* ─── Glass card ────────────────────────────────────────── */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* ─── Glow ──────────────────────────────────────────────── */
+.glow-blue    { box-shadow: 0 0 40px rgba(11,165,236,0.25); }
+.glow-blue-sm { box-shadow: 0 0 16px rgba(11,165,236,0.18); }
+
+/* ─── Gradient text ─────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg,#36bffa 0%,#0ba5ec 50%,#7cd4fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Forge gradient bg ─────────────────────────────────── */
+.bg-forge-gradient {
+  background: linear-gradient(135deg, #0ba5ec 0%, #065986 100%);
+}
+
+/* ─── Borders ───────────────────────────────────────────── */
+.border-theme  { border-color: var(--border); }
+.bg-surface2   { background: var(--bg2); }
+
+/* ─── Grid bg ───────────────────────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── Animation delays ──────────────────────────────────── */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.opacity-0-init { opacity: 0; }
+
+/* ─── Animations ────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity:0; } to { opacity:1; }
+}
+@keyframes floatY {
+  0%,100% { transform:translateY(0); }
+  50%      { transform:translateY(-10px); }
+}
+@keyframes pulseSlow {
+  0%,100% { opacity:1; } 50% { opacity:0.4; }
+}
+
+.animate-fade-up   { animation: fadeUp  0.6s ease forwards; }
+.animate-fade-in   { animation: fadeIn  0.4s ease forwards; }
+.animate-float     { animation: floatY  5s ease-in-out infinite; }
+.animate-pulse-slow{ animation: pulseSlow 2.5s ease-in-out infinite; }
+.animate-spin      { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ─── Button press ──────────────────────────────────────── */
+.btn-press:active { transform: scale(0.97); }
+
+/* ─── Input / textarea focus ────────────────────────────── */
+textarea, input, select {
+  font-family: inherit;
+  color: var(--text);
+  background: transparent;
+}
+textarea:focus, input:focus, select:focus { outline: none; }
