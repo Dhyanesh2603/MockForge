@@ -8,6 +8,8 @@ import interviewRoutes from "./routes/interviewRoutes.js";
 
 import answerRoutes from "./routes/answerRoutes.js";
 
+import resultRoutes from "./routes/resultRoutes.js";
+
 const app = express();
 
 app.use(cors());
@@ -29,5 +31,7 @@ app.use(
 );
 
 app.use("/api/answers", answerRoutes);
+
+app.use("/api/results", resultRoutes);
 
 export default app;

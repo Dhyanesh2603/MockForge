@@ -14,6 +14,8 @@ import CreateInterviewPage from "../pages/interviews/CreateInterviewPage";
 
 import InterviewDetailsPage from "../pages/interviews/InterviewDetailsPage";
 
+import ResultPage from "../pages/results/ResultPage";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -43,6 +45,11 @@ function AppRoutes() {
           element={
             <InterviewDetailsPage />
           }
+        />
+
+        <Route
+          path="/results/:interviewId"
+          element={<ResultPage />}
         />
       </Routes>
     </BrowserRouter>

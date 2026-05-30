@@ -33,3 +33,7 @@ export const getInterviewQuestions =
 
     return questionsResult.rows;
   };
+
+// ALIAS EXPORT
+export const getQuestionsByInterviewId =
+  getInterviewQuestions;
