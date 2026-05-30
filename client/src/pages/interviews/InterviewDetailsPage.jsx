@@ -215,50 +215,38 @@ function InterviewDetailsPage() {
       );
     };
 
-  const handleSubmitInterview =
-    async () => {
-      try {
-        setSubmitting(true);
+  const handleSubmitInterview = async () => {
+  const confirmSubmit = window.confirm(
+    "Are you sure you want to submit the interview? You cannot edit after this."
+  );
 
-        const token =
-          await user.getIdToken();
+  if (!confirmSubmit) return;
 
-        await api.post(
-          "/results/submit",
-          {
-            interviewId: id,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+  try {
+    setSubmitting(true);
 
-        setSubmitted(true);
+    const token = await user.getIdToken();
 
-        localStorage.removeItem(
-          `timer-${id}`
-        );
-
-        navigate(
-          `/results/${id}`
-        );
-      } catch (error) {
-        console.error(
-          "SUBMIT INTERVIEW ERROR:"
-        );
-
-        console.error(error);
-
-        alert(
-          "Failed to evaluate interview"
-        );
-      } finally {
-        setSubmitting(false);
+    await api.post(
+      "/results/submit",
+      { interviewId: id },
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
-    };
+    );
 
+    setSubmitted(true);
+
+    localStorage.removeItem(`timer-${id}`);
+
+    navigate(`/results/${id}`);
+  } catch (error) {
+    console.error(error);
+    alert("Failed to evaluate interview");
+  } finally {
+    setSubmitting(false);
+  }
+};
   const formatTime = (
     seconds
   ) => {
