@@ -223,25 +223,16 @@ function InterviewDetailsPage() {
         const token =
           await user.getIdToken();
 
-        const response =
-          await api.post(
-            "/results/submit",
-            {
-              interviewId: id,
+        await api.post(
+          "/results/submit",
+          {
+            interviewId: id,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
             },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-        console.log(
-          "EVALUATION RESPONSE:"
-        );
-
-        console.log(
-          response.data
+          }
         );
 
         setSubmitted(true);
@@ -250,10 +241,8 @@ function InterviewDetailsPage() {
           `timer-${id}`
         );
 
-        navigate(`/results/${id}`);
-
-        alert(
-          "Interview evaluated successfully!"
+        navigate(
+          `/results/${id}`
         );
       } catch (error) {
         console.error(
