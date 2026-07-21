@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
@@ -59,6 +59,7 @@ export default function CreateInterviewPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const requestInProgress = useRef(false);
 
   // Step 1
   const [role, setRole] = useState("");
@@ -82,32 +83,52 @@ export default function CreateInterviewPage() {
 
   // ONLY called on step 3 submit button click — NOT a form submit
   const handleStart = async () => {
-    if (step !== 3) return;
-    try {
-      setLoading(true);
-      setError("");
-      const token = await user.getIdToken();
-      const payload = {
-        role, techStack, difficulty,
-        numQuestions: Number(numQuestions),
-        experience, interviewType,
-        focusAreas: focusAreas.join(", "),
-        targetCompany,
-        jobDescription: jobDescription.slice(0, 600), // keep token count low
-        additionalContext: additionalContext.slice(0, 300),
-        dynamic,
-      };
-      const r = await api.post("/interviews", payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      navigate(`/interviews/${r.data.interview.id}`);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to create interview. Check your connection and try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (step !== 3) return;
+
+  // Prevent duplicate requests
+  if (requestInProgress.current) return;
+
+  requestInProgress.current = true;
+
+  try {
+    setLoading(true);
+    setError("");
+
+    const token = await user.getIdToken();
+
+    const payload = {
+      role,
+      techStack,
+      difficulty,
+      numQuestions: Number(numQuestions),
+      experience,
+      interviewType,
+      focusAreas: focusAreas.join(", "),
+      targetCompany,
+      jobDescription: jobDescription.slice(0, 600),
+      additionalContext: additionalContext.slice(0, 300),
+      dynamic,
+    };
+
+    const r = await api.post(
+      "/interviews",
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    navigate(`/interviews/${r.data.interview.id}`);
+  } catch (err) {
+    console.error(err);
+    setError("Failed to create interview. Check your connection and try again.");
+  } finally {
+    requestInProgress.current = false;
+    setLoading(false);
+  }
+};
 
   const dc = {
     Easy:   { c: "#34d399", bg: "rgba(52,211,153,.1)",  br: "rgba(52,211,153,.3)",  d: "Foundational concepts" },

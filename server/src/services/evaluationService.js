@@ -1,22 +1,24 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
- 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
  
 const MODELS = [
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-exp",
-  "gemini-2.0-flash-lite",
-  "gemini-1.5-flash-latest",
-  "gemini-pro",
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
 ];
  
 async function callGemini(prompt) {
   for (const name of MODELS) {
     try {
       console.log(`[Gemini eval] Trying model: ${name}`);
-      const model = genAI.getGenerativeModel({ model: name });
-      const res = await model.generateContent(prompt);
-      const text = res.response.text();
+      const res = await ai.models.generateContent({
+          model: name,
+          contents: prompt,
+      });
+
+const text = res.text;
       console.log(`[Gemini eval] SUCCESS with ${name}`);
       return text;
     } catch (e) {
