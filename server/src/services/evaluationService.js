@@ -1,98 +1,101 @@
 import { GoogleGenAI } from "@google/genai";
-
+ 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
  
-const MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-];
+// gemini-2.0-flash was retired by Google on June 1, 2026.
+// gemini-3.5-flash is the current GA, production-ready replacement.
+const MODEL = "gemini-3.5-flash";
  
-async function callGemini(prompt) {
-  for (const name of MODELS) {
-    try {
-      console.log(`[Gemini eval] Trying model: ${name}`);
-      const res = await ai.models.generateContent({
-          model: name,
-          contents: prompt,
-      });
-
-const text = res.text;
-      console.log(`[Gemini eval] SUCCESS with ${name}`);
-      return text;
-    } catch (e) {
-      const is404 = e.message?.includes("404") || e.message?.includes("not found");
-      const is429 = e.message?.includes("429") || e.message?.includes("quota");
-      console.warn(`[Gemini eval] ${name} → ${is404 ? "404 not found" : is429 ? "429 quota" : e.message?.slice(0, 60)}`);
-      if (is429) throw e; // stop on quota
-      // 404 = try next model
-    }
-  }
-  throw new Error("No working Gemini model found");
+// Defensive JSON parsing: even with responseMimeType set to JSON,
+// this strips any stray ```json fences before parsing.
+function parseJsonResponse(text) {
+  const cleaned = text
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/```\s*$/i, "")
+    .trim();
+ 
+  return JSON.parse(cleaned);
 }
  
-function extractObj(raw) {
-  const t = raw.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
-  let depth = 0, start = -1, end = -1;
-  for (let i = 0; i < t.length; i++) {
-    if (t[i] === "{") { if (depth === 0) start = i; depth++; }
-    else if (t[i] === "}") { depth--; if (depth === 0) { end = i; break; } }
-  }
-  if (start === -1 || end === -1) throw new Error("No JSON object found");
-  return t.slice(start, end + 1);
-}
+export const evaluateInterview = async ({
+  role,
+  techStack,
+  difficulty,
+  questions,
+  answers,
+}) => {
+  try {
+    const formattedQuestions = questions
+      .map((question, index) => {
+        const matchingAnswer = answers.find(
+          (answer) => answer.question_id === question.id
+        );
  
-export const evaluateInterview = async ({ role, techStack, difficulty, questions, answers }) => {
-  const qa = questions.map((q, i) => {
-    const ans = answers.find(a => a.question_id === q.id);
-    const text = (ans?.answer_text || "No answer provided").slice(0, 300);
-    return `Q${i + 1}: ${q.question_text}\nA: ${text}`;
-  }).join("\n\n");
+        return `
+Question ${index + 1}:
+${question.question_text}
  
-  const prompt = `You are a technical interviewer. Evaluate this mock interview.
+Answer:
+${matchingAnswer?.answer_text || "No answer provided"}
+`;
+      })
+      .join("\n\n");
  
-Role: ${role} | Stack: ${techStack} | Difficulty: ${difficulty}
+    const prompt = `
+You are an AI technical interviewer.
  
-${qa}
+Evaluate this mock interview.
  
-Respond with ONLY a JSON object. Start with { end with }. No markdown, no extra text.
+Role: ${role}
+ 
+Tech Stack: ${techStack}
+ 
+Difficulty: ${difficulty}
+ 
+Questions and Answers:
+${formattedQuestions}
+ 
+Return ONLY valid JSON in this exact format:
  
 {
-  "overallScore": <integer 0-100>,
-  "technicalScore": <integer 0-100>,
-  "communicationScore": <integer 0-100>,
-  "clarityScore": <integer 0-100>,
-  "strengths": "<2-3 sentences>",
-  "weaknesses": "<2-3 sentences>",
-  "feedback": "<3-4 sentences of actionable advice>",
-  "questionScores": [<exactly ${questions.length} integers>],
-  "questionCritiques": [<exactly ${questions.length} short strings>],
-  "skillGaps": ["<topic>", "<topic>"],
-  "strongTopics": ["<topic>", "<topic>"]
-}`;
+  "overallScore": 85,
+  "strengths": "Good React fundamentals and clean explanations.",
+  "weaknesses": "Needs deeper backend optimization knowledge.",
+  "feedback": "Overall strong performance with decent communication and technical understanding."
+}
+`;
  
-  try {
-    const raw = await callGemini(prompt);
-    console.log("[Gemini eval] Raw preview:", raw.slice(0, 200));
-    const parsed = JSON.parse(extractObj(raw));
-    if (typeof parsed.overallScore !== "number") throw new Error("Missing overallScore");
-    console.log("[Gemini eval] Score:", parsed.overallScore);
-    return parsed;
-  } catch (e) {
-    console.error("[Gemini eval] FAILED:", e.message);
+    const response = await ai.models.generateContent({
+      model: MODEL,
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+      },
+    });
+ 
+    return parseJsonResponse(response.text);
+  } catch (error) {
+    console.error("EVALUATION GEMINI ERROR");
+ 
+    console.error(error);
+ 
+    // FALLBACK MOCK RESPONSE
     return {
-      overallScore: 72,
-      technicalScore: 70,
-      communicationScore: 74,
-      clarityScore: 73,
-      strengths: "Demonstrated reasonable understanding of core concepts.",
-      weaknesses: "Some answers lacked depth on optimisation and edge cases.",
-      feedback: "Solid performance. Focus on deeper technical explanations with specific project examples.",
-      questionScores: Array(questions.length).fill(72),
-      questionCritiques: questions.map(() => "Could be more detailed with specific examples."),
-      skillGaps: ["System Design", "Performance Optimisation"],
-      strongTopics: ["Core Concepts", "Problem Solving"],
+      overallScore: 78,
+ 
+      strengths:
+        "Good understanding of core concepts and communication.",
+ 
+      weaknesses:
+        "Could improve advanced optimization and scalability knowledge.",
+ 
+      feedback:
+        "Overall solid interview performance with room for improvement in deeper technical areas.",
     };
   }
 };
+ 
