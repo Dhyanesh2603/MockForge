@@ -25,10 +25,8 @@ function LoginPage() {
       // Firebase token
       const token = await user.getIdToken();
 
-      console.log("TOKEN:", token);
-
       // Backend login request
-      const response = await api.post(
+      await api.post(
         "/auth/login",
         {},
         {
@@ -36,11 +34,6 @@ function LoginPage() {
             Authorization: `Bearer ${token}`,
           },
         }
-      );
-
-      console.log(
-        "Backend Response:",
-        response.data
       );
 
       navigate("/dashboard");
