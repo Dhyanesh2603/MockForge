@@ -1,7 +1,6 @@
 import {
   createInterview,
   getUserInterviews,
-  getInterviewById,
 } from "../repositories/interviewRepository.js";
 
 import { saveInterviewQuestions } from "../repositories/questionRepository.js";
