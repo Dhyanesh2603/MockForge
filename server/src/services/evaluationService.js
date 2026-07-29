@@ -55,7 +55,11 @@ Difficulty: ${difficulty}
 Questions and Answers:
 ${formattedQuestions}
 
-Return ONLY valid JSON in this exact format:
+Rules:
+- Return ONLY valid JSON format
+- No markdown
+- No explanations
+- Return ONLY valid JSON in this exact format:
 
 {
   "overallScore": 85,
@@ -73,7 +77,8 @@ Return ONLY valid JSON in this exact format:
       const response =
         await result.response;
 
-      const text = response.text();
+      let text = response.text();
+      text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
       return JSON.parse(text);
     } catch (error) {
