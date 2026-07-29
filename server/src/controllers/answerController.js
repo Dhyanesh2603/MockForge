@@ -3,6 +3,8 @@ import {
   getInterviewAnswers,
 } from "../repositories/answerRepository.js";
 
+import { getInterviewById } from "../repositories/interviewRepository.js";
+
 export const saveInterviewAnswer =
   async (req, res) => {
     try {
@@ -11,6 +13,20 @@ export const saveInterviewAnswer =
         questionId,
         answerText,
       } = req.body;
+
+      const interview = await getInterviewById(interviewId);
+
+      if (!interview) {
+        return res.status(404).json({
+          message: "Interview not found",
+        });
+      }
+
+      if (interview.user_id !== req.user.uid) {
+        return res.status(403).json({
+          message: "Forbidden",
+        });
+      }
 
       const answer = await saveAnswer({
         interviewId,
@@ -39,6 +55,20 @@ export const getAnswers = async (
 ) => {
   try {
     const { interviewId } = req.params;
+
+    const interview = await getInterviewById(interviewId);
+
+    if (!interview) {
+      return res.status(404).json({
+        message: "Interview not found",
+      });
+    }
+
+    if (interview.user_id !== req.user.uid) {
+      return res.status(403).json({
+        message: "Forbidden",
+      });
+    }
 
     const answers =
       await getInterviewAnswers(
