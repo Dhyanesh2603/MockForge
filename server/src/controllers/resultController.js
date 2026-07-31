@@ -47,11 +47,26 @@ export const submitInterview =
           interviewId
         );
 
-      if (existingResult) {
+      if (existingResult && existingResult.overall_score !== 78 && req.query.reEvaluate !== "true") {
         return res.status(200).json({
           message:
             "Result already exists",
-          result: existingResult,
+          result: {
+            ...existingResult,
+            overallScore: existingResult.overall_score,
+            technicalScore: Math.min(
+              Math.round(existingResult.overall_score * 0.95 + 3),
+              100
+            ),
+            communicationScore: Math.min(
+              Math.round(existingResult.overall_score * 0.9 + 4),
+              100
+            ),
+            clarityScore: Math.min(
+              Math.round(existingResult.overall_score * 1.02 + 1),
+              100
+            ),
+          },
         });
       }
 

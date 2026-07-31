@@ -157,13 +157,29 @@ export default function InterviewDetailsPage() {
     try{
       setSubmitting(true);
       const tok=await user.getIdToken();
+
+      // Ensure all current candidate answers are flushed and saved to backend
+      const entries = Object.entries(answers);
+      await Promise.all(
+        entries.map(([qid, text]) => {
+          if (text && text.trim()) {
+            return api.post(
+              "/answers",
+              { interviewId: id, questionId: qid, answerText: text },
+              { headers: { Authorization: `Bearer ${tok}` } }
+            );
+          }
+          return Promise.resolve();
+        })
+      );
+
       await api.post("/results/submit",{interviewId:id},{headers:{Authorization:`Bearer ${tok}`}});
       setSubmitted(true);
       localStorage.removeItem(`mf-timer-${id}`);
       navigate(`/results/${id}`);
     }catch(e){console.error(e);alert("Submission failed. Please try again.");}
     finally{setSubmitting(false);}
-  },[user,id,submitting,submitted,navigate]);
+  },[user,id,submitting,submitted,navigate,answers]);
 
   const toggleFlag=()=>setFlagged(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
   const toggleReview=()=>setReviewLater(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
