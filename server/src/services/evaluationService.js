@@ -102,6 +102,8 @@ export const evaluateInterview =
     answers,
   }) => {
     try {
+      // Count how many questions actually have a real answer
+      let answeredCount = 0;
       const formattedQuestions =
         questions
           .map((question, index) => {
@@ -112,57 +114,83 @@ export const evaluateInterview =
                   String(question.id)
               );
 
+            const answerText = matchingAnswer?.answer_text?.trim();
+            if (answerText && answerText.length > 0) {
+              answeredCount++;
+            }
+
             return `
 Question ${index + 1}:
 ${question.question_text}
 
 Candidate Answer:
-${
-  matchingAnswer?.answer_text ||
-  "No answer provided"
-}
+${answerText || "[SKIPPED - No answer provided]"}
 `;
           })
           .join("\n\n");
 
+      // If the candidate answered ZERO questions, return 0 score immediately
+      if (answeredCount === 0) {
+        return {
+          overallScore: 0,
+          technicalScore: 0,
+          communicationScore: 0,
+          clarityScore: 0,
+          strengths: "No answers were provided to evaluate.",
+          weaknesses: "The candidate did not attempt any questions. All questions were left blank.",
+          feedback: "No answers were submitted. Please attempt the interview questions to receive a meaningful evaluation.",
+        };
+      }
+
       const prompt = `
-Evaluate this mock technical interview and provide a comprehensive evaluation report.
+You are a strict technical interview evaluator. Evaluate the following mock interview based ONLY on the actual answers provided by the candidate. Be honest and critical.
+
+CRITICAL RULES:
+- If a question was SKIPPED or has "[SKIPPED - No answer provided]", that question scores 0.
+- Score each answer based on correctness, depth, and clarity.
+- The overallScore must reflect the proportion of questions answered and the quality of those answers.
+- If only ${answeredCount} out of ${questions.length} questions were answered, the maximum possible overallScore is roughly ${Math.round((answeredCount / questions.length) * 100)}.
+- Do NOT give high scores for missing or vague answers.
 
 Role: ${role}
 Tech Stack: ${techStack}
 Difficulty: ${difficulty}
+Questions Answered: ${answeredCount} out of ${questions.length}
 
 Questions and Candidate Answers:
 ${formattedQuestions}
 
-Return ONLY a valid JSON object in this exact structure:
+Return ONLY a valid JSON object with these exact keys:
 {
-  "overallScore": 85,
-  "technicalScore": 82,
-  "communicationScore": 88,
-  "clarityScore": 85,
-  "strengths": "Strong core fundamentals and clear explanation of concepts.",
-  "weaknesses": "Could provide more specific code examples and deeper architecture details.",
-  "feedback": "Overall impressive performance with solid communication and problem-solving skills."
+  "overallScore": <0-100>,
+  "technicalScore": <0-100>,
+  "communicationScore": <0-100>,
+  "clarityScore": <0-100>,
+  "strengths": "<string>",
+  "weaknesses": "<string>",
+  "feedback": "<string>"
 }
 `;
 
       const rawText = await callNvidia(prompt);
       const evaluation = extractJson(rawText);
 
-      const overall = Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score) || 78;
-      const tech = Number(evaluation.technicalScore ?? evaluation.technical_score) || Math.min(Math.round(overall * 0.95 + 3), 100);
-      const comm = Number(evaluation.communicationScore ?? evaluation.communication_score) || Math.min(Math.round(overall * 0.9 + 4), 100);
-      const clar = Number(evaluation.clarityScore ?? evaluation.clarity_score) || Math.min(Math.round(overall * 1.02 + 1), 100);
+      const overall = Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score);
+      const tech = Number(evaluation.technicalScore ?? evaluation.technical_score);
+      const comm = Number(evaluation.communicationScore ?? evaluation.communication_score);
+      const clar = Number(evaluation.clarityScore ?? evaluation.clarity_score);
+
+      // Sanity cap: score cannot exceed proportion of answered questions + small buffer
+      const maxReasonable = Math.round((answeredCount / questions.length) * 100) + 10;
 
       return {
-        overallScore: overall,
-        technicalScore: tech,
-        communicationScore: comm,
-        clarityScore: clar,
-        strengths: evaluation.strengths || "Good understanding of foundational concepts.",
-        weaknesses: evaluation.weaknesses || "Could provide deeper technical details and practical examples.",
-        feedback: evaluation.feedback || "Solid interview performance overall.",
+        overallScore: Math.min(overall || 0, maxReasonable),
+        technicalScore: Math.min(tech || 0, maxReasonable),
+        communicationScore: Math.min(comm || 0, maxReasonable),
+        clarityScore: Math.min(clar || 0, maxReasonable),
+        strengths: evaluation.strengths || "No notable strengths identified.",
+        weaknesses: evaluation.weaknesses || "Insufficient answers provided for evaluation.",
+        feedback: evaluation.feedback || "Please attempt more questions for a meaningful evaluation.",
       };
     } catch (error) {
       console.error(
@@ -172,16 +200,16 @@ Return ONLY a valid JSON object in this exact structure:
 
       // FALLBACK MOCK RESPONSE
       return {
-        overallScore: 78,
-        technicalScore: 75,
-        communicationScore: 80,
-        clarityScore: 78,
+        overallScore: 0,
+        technicalScore: 0,
+        communicationScore: 0,
+        clarityScore: 0,
         strengths:
-          "Good understanding of core concepts and communication.",
+          "Evaluation could not be completed due to a service error.",
         weaknesses:
-          "Could improve advanced optimization and scalability knowledge.",
+          "Please try submitting again.",
         feedback:
-          "Overall solid interview performance with room for improvement in deeper technical areas.",
+          "An error occurred during evaluation. Please retry.",
       };
     }
   };
