@@ -44,7 +44,7 @@ const extractJson = (text) => {
   throw new Error(`Failed to parse valid JSON from AI response.`);
 };
 
-const callNvidia = async (prompt) => {
+const callNvidia = async (prompt, maxTokens = 2048) => {
   let lastError = null;
 
   for (const model of CANDIDATE_MODELS) {
@@ -68,7 +68,7 @@ const callNvidia = async (prompt) => {
           ],
           temperature: 0.2,
           top_p: 1,
-          max_tokens: 1536,
+          max_tokens: maxTokens,
         }),
       });
 
@@ -102,32 +102,23 @@ export const evaluateInterview =
     answers,
   }) => {
     try {
-      // Count how many questions actually have a real answer
+      // Count how many questions actually have a real answer and build Q&A pairs
       let answeredCount = 0;
-      const formattedQuestions =
-        questions
-          .map((question, index) => {
-            const matchingAnswer =
-              answers.find(
-                (answer) =>
-                  String(answer.question_id) ===
-                  String(question.id)
-              );
-
-            const answerText = matchingAnswer?.answer_text?.trim();
-            if (answerText && answerText.length > 0) {
-              answeredCount++;
-            }
-
-            return `
-Question ${index + 1}:
-${question.question_text}
-
-Candidate Answer:
-${answerText || "[SKIPPED - No answer provided]"}
-`;
-          })
-          .join("\n\n");
+      const qaPairs = questions.map((question, index) => {
+        const matchingAnswer = answers.find(
+          (answer) => String(answer.question_id) === String(question.id)
+        );
+        const answerText = matchingAnswer?.answer_text?.trim() || "";
+        if (answerText.length > 0) {
+          answeredCount++;
+        }
+        return {
+          index: index + 1,
+          questionText: question.question_text,
+          answerText: answerText || "[SKIPPED - No answer provided]",
+          questionId: question.id,
+        };
+      });
 
       // If the candidate answered ZERO questions, return 0 score immediately
       if (answeredCount === 0) {
@@ -139,11 +130,18 @@ ${answerText || "[SKIPPED - No answer provided]"}
           strengths: "No answers were provided to evaluate.",
           weaknesses: "The candidate did not attempt any questions. All questions were left blank.",
           feedback: "No answers were submitted. Please attempt the interview questions to receive a meaningful evaluation.",
+          questionScores: questions.map(() => 0),
+          questionCritiques: questions.map(() => "No answer was provided for this question."),
+          skillGaps: ["All topics — no answers provided"],
+          strongTopics: [],
         };
       }
 
-      const prompt = `
-You are a strict technical interview evaluator. Evaluate the following mock interview based ONLY on the actual answers provided by the candidate. Be honest and critical.
+      const formattedQuestions = qaPairs
+        .map((qa) => `Question ${qa.index}:\n${qa.questionText}\n\nCandidate Answer:\n${qa.answerText}`)
+        .join("\n\n---\n\n");
+
+      const prompt = `You are a strict technical interview evaluator. Evaluate the following mock interview based ONLY on the actual answers provided by the candidate. Be honest and critical.
 
 CRITICAL RULES:
 - If a question was SKIPPED or has "[SKIPPED - No answer provided]", that question scores 0.
@@ -151,6 +149,8 @@ CRITICAL RULES:
 - The overallScore must reflect the proportion of questions answered and the quality of those answers.
 - If only ${answeredCount} out of ${questions.length} questions were answered, the maximum possible overallScore is roughly ${Math.round((answeredCount / questions.length) * 100)}.
 - Do NOT give high scores for missing or vague answers.
+- questionScores MUST be an array with exactly ${questions.length} numbers (one per question, in order).
+- questionCritiques MUST be an array with exactly ${questions.length} strings (one critique per question, in order).
 
 Role: ${role}
 Tech Stack: ${techStack}
@@ -166,13 +166,16 @@ Return ONLY a valid JSON object with these exact keys:
   "technicalScore": <0-100>,
   "communicationScore": <0-100>,
   "clarityScore": <0-100>,
-  "strengths": "<string>",
-  "weaknesses": "<string>",
-  "feedback": "<string>"
-}
-`;
+  "strengths": "<string summarizing what candidate did well>",
+  "weaknesses": "<string summarizing areas to improve>",
+  "feedback": "<string with overall actionable feedback>",
+  "questionScores": [<score for Q1>, <score for Q2>, ...],
+  "questionCritiques": ["<critique for Q1>", "<critique for Q2>", ...],
+  "skillGaps": ["<topic1>", "<topic2>", ...],
+  "strongTopics": ["<topic1>", "<topic2>", ...]
+}`;
 
-      const rawText = await callNvidia(prompt);
+      const rawText = await callNvidia(prompt, 2048);
       const evaluation = extractJson(rawText);
 
       const overall = Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score);
@@ -183,6 +186,45 @@ Return ONLY a valid JSON object with these exact keys:
       // Sanity cap: score cannot exceed proportion of answered questions + small buffer
       const maxReasonable = Math.round((answeredCount / questions.length) * 100) + 10;
 
+      // Parse per-question scores — ensure it's an array of the right length
+      let questionScores = Array.isArray(evaluation.questionScores || evaluation.question_scores)
+        ? (evaluation.questionScores || evaluation.question_scores).map((s) => Math.min(Number(s) || 0, 100))
+        : questions.map(() => 0);
+      if (questionScores.length < questions.length) {
+        questionScores = [...questionScores, ...Array(questions.length - questionScores.length).fill(0)];
+      } else if (questionScores.length > questions.length) {
+        questionScores = questionScores.slice(0, questions.length);
+      }
+      // Set skipped questions to 0
+      qaPairs.forEach((qa, i) => {
+        if (qa.answerText === "[SKIPPED - No answer provided]") {
+          questionScores[i] = 0;
+        }
+      });
+
+      // Parse per-question critiques
+      let questionCritiques = Array.isArray(evaluation.questionCritiques || evaluation.question_critiques)
+        ? (evaluation.questionCritiques || evaluation.question_critiques).map((c) => String(c || "No critique available."))
+        : questions.map(() => "No critique available.");
+      if (questionCritiques.length < questions.length) {
+        questionCritiques = [...questionCritiques, ...Array(questions.length - questionCritiques.length).fill("No critique available.")];
+      } else if (questionCritiques.length > questions.length) {
+        questionCritiques = questionCritiques.slice(0, questions.length);
+      }
+      qaPairs.forEach((qa, i) => {
+        if (qa.answerText === "[SKIPPED - No answer provided]") {
+          questionCritiques[i] = "No answer was provided for this question.";
+        }
+      });
+
+      // Parse skill gaps and strong topics
+      const skillGaps = Array.isArray(evaluation.skillGaps || evaluation.skill_gaps)
+        ? (evaluation.skillGaps || evaluation.skill_gaps).map(String)
+        : [];
+      const strongTopics = Array.isArray(evaluation.strongTopics || evaluation.strong_topics)
+        ? (evaluation.strongTopics || evaluation.strong_topics).map(String)
+        : [];
+
       return {
         overallScore: Math.min(overall || 0, maxReasonable),
         technicalScore: Math.min(tech || 0, maxReasonable),
@@ -191,6 +233,10 @@ Return ONLY a valid JSON object with these exact keys:
         strengths: evaluation.strengths || "No notable strengths identified.",
         weaknesses: evaluation.weaknesses || "Insufficient answers provided for evaluation.",
         feedback: evaluation.feedback || "Please attempt more questions for a meaningful evaluation.",
+        questionScores,
+        questionCritiques,
+        skillGaps,
+        strongTopics,
       };
     } catch (error) {
       console.error(
@@ -198,18 +244,18 @@ Return ONLY a valid JSON object with these exact keys:
         error
       );
 
-      // FALLBACK MOCK RESPONSE
       return {
         overallScore: 0,
         technicalScore: 0,
         communicationScore: 0,
         clarityScore: 0,
-        strengths:
-          "Evaluation could not be completed due to a service error.",
-        weaknesses:
-          "Please try submitting again.",
-        feedback:
-          "An error occurred during evaluation. Please retry.",
+        strengths: "Evaluation could not be completed due to a service error.",
+        weaknesses: "Please try submitting again.",
+        feedback: "An error occurred during evaluation. Please retry.",
+        questionScores: questions.map(() => 0),
+        questionCritiques: questions.map(() => "Evaluation failed. Please retry."),
+        skillGaps: [],
+        strongTopics: [],
       };
     }
   };

@@ -48,9 +48,8 @@ function Bar({label,value,color,delay=0}){
 }
 
 /* ── Radar SVG ──────────────────────────────── */
-function Radar({scores}){
-  const labels=["Technical","Communication","Clarity","Depth","Examples"];
-  const vals=labels.map((_,i)=>(scores[i]||70)/100);
+function Radar({scores,labels}){
+  const vals=labels.map((_,i)=>(scores[i]||0)/100);
   const [anim,setAnim]=useState(false);
   useEffect(()=>{const t=setTimeout(()=>setAnim(true),600);return()=>clearTimeout(t);},[]);
   const cx=100,cy=100,R=78;
@@ -78,9 +77,18 @@ function Radar({scores}){
 }
 
 /* ── Per-question strip ─────────────────────── */
-function QStrip({questions,scores,critiques}){
+function QStrip({questions,scores,critiques,answers}){
   const [sel,setSel]=useState(null);
   if(!scores?.length) return null;
+
+  // Build a map from question_id -> answer_text
+  const answerMap = {};
+  if (answers) {
+    answers.forEach((a) => {
+      answerMap[String(a.question_id)] = a.answer_text;
+    });
+  }
+
   return(
     <div>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:sel!==null?12:0}}>
@@ -100,7 +108,18 @@ function QStrip({questions,scores,critiques}){
       {sel!==null&&(
         <div style={{borderRadius:16,padding:16,background:"var(--bg2)",border:"1px solid var(--border)",marginTop:8}}>
           <p style={{fontSize:11,color:"var(--text3)",margin:"0 0 6px",fontWeight:600,textTransform:"uppercase",letterSpacing:".06em"}}>Q{sel+1} · Score {scores[sel]}/100</p>
-          {questions[sel]&&<p style={{fontSize:14,color:"var(--text)",margin:"0 0 10px",lineHeight:1.6}}>{questions[sel].question_text}</p>}
+          {questions[sel]&&<p style={{fontSize:14,color:"var(--text)",margin:"0 0 10px",lineHeight:1.6,fontWeight:600}}>{questions[sel].question_text}</p>}
+
+          {/* Show candidate answer */}
+          {questions[sel]&&(
+            <div style={{padding:"10px 14px",borderRadius:12,background:"var(--bg3)",border:"1px solid var(--border)",marginBottom:10}}>
+              <p style={{fontSize:11,color:"var(--text3)",margin:"0 0 4px",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Your Answer</p>
+              <p style={{fontSize:13,color:"var(--text2)",margin:0,lineHeight:1.65,whiteSpace:"pre-wrap"}}>
+                {answerMap[String(questions[sel].id)] || "No answer provided"}
+              </p>
+            </div>
+          )}
+
           {critiques?.[sel]&&(
             <div style={{padding:"10px 14px",borderRadius:12,background:"rgba(var(--forge-rgb),.07)",border:"1px solid rgba(var(--forge-rgb),.2)"}}>
               <p style={{fontSize:12,color:"var(--text3)",margin:"0 0 4px",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>AI Critique</p>
@@ -131,6 +150,43 @@ function Sec({icon,title,content,accent}){
       <div style={{padding:"16px 20px"}}>
         <p style={{fontSize:14,color:"var(--text2)",lineHeight:1.75,margin:0,whiteSpace:"pre-line"}}>{content||"Not available."}</p>
       </div>
+    </div>
+  );
+}
+
+/* ── Answer card for Answers tab ────────────── */
+function AnswerCard({index,question,answerText,score,critique}){
+  const col=score>=75?"#34d399":score>=50?"#fbbf24":"#f87171";
+  const [open,setOpen]=useState(false);
+  return(
+    <div className="glass" style={{borderRadius:16,border:"1px solid var(--border)",overflow:"hidden"}}>
+      <button onClick={()=>setOpen(!open)} className="btn-press"
+        style={{width:"100%",display:"flex",alignItems:"center",gap:14,padding:"14px 18px",border:"none",background:"transparent",cursor:"pointer",textAlign:"left"}}>
+        <div style={{width:36,height:36,borderRadius:10,background:`${col}18`,border:`1px solid ${col}30`,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <span style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:14,color:col}}>{score}</span>
+        </div>
+        <div style={{flex:1,minWidth:0}}>
+          <p style={{fontSize:11,color:"var(--text3)",margin:"0 0 2px",fontWeight:600}}>Question {index+1}</p>
+          <p style={{fontSize:14,color:"var(--text)",margin:0,lineHeight:1.4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:open?"normal":"nowrap"}}>{question}</p>
+        </div>
+        <span style={{fontSize:18,color:"var(--text3)",transform:open?"rotate(180deg)":"rotate(0deg)",transition:"transform .2s"}}>▾</span>
+      </button>
+      {open&&(
+        <div style={{padding:"0 18px 18px",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{padding:"12px 14px",borderRadius:12,background:"var(--bg3)",border:"1px solid var(--border)"}}>
+            <p style={{fontSize:11,color:"var(--text3)",margin:"0 0 6px",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>Your Answer</p>
+            <p style={{fontSize:13,color:answerText?"var(--text2)":"var(--text3)",margin:0,lineHeight:1.65,whiteSpace:"pre-wrap",fontStyle:answerText?"normal":"italic"}}>
+              {answerText || "No answer provided"}
+            </p>
+          </div>
+          {critique&&(
+            <div style={{padding:"12px 14px",borderRadius:12,background:"rgba(var(--forge-rgb),.07)",border:"1px solid rgba(var(--forge-rgb),.2)"}}>
+              <p style={{fontSize:11,color:"var(--forge)",margin:"0 0 6px",fontWeight:700,textTransform:"uppercase",letterSpacing:".06em"}}>AI Critique</p>
+              <p style={{fontSize:13,color:"var(--text2)",margin:0,lineHeight:1.65}}>{critique}</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -167,28 +223,30 @@ export default function ResultPage(){
     </div>
   );
 
-  const s=result?.overall_score??0;
-  const tech=result?.technicalScore??Math.min(Math.round(s*.95+3),100);
-  const comm=result?.communicationScore??Math.min(Math.round(s*.9+4),100);
-  const clar=result?.clarityScore??Math.min(Math.round(s*1.02+1),100);
-  const dep=Math.min(Math.round(s*.88+5),100);
-  const ex=Math.min(Math.round(s*.92+2),100);
-  const qScores=result?.questionScores||(questions.length?questions.map(()=>Math.min(Math.max(Math.round(s+(Math.random()*18-9)),0),100)):[]);
+  // All data from the API — no hardcoded formulas
+  const s=result?.overallScore??result?.overall_score??0;
+  const tech=result?.technicalScore??0;
+  const comm=result?.communicationScore??0;
+  const clar=result?.clarityScore??0;
+  const qScores=result?.questionScores||[];
   const critiques=result?.questionCritiques||[];
   const skillGaps=result?.skillGaps||[];
   const strongTopics=result?.strongTopics||[];
+  const candidateAnswers=result?.answers||[];
+
+  // Build answer map for quick lookup
+  const answerMap = {};
+  candidateAnswers.forEach((a) => {
+    answerMap[String(a.question_id)] = a.answer_text;
+  });
 
   const bars=[
     {label:"Technical Knowledge",value:tech,color:"#38bdf8"},
     {label:"Communication",value:comm,color:"#34d399"},
     {label:"Clarity",value:clar,color:"#a78bfa"},
-    {label:"Answer Depth",value:dep,color:"#fbbf24"},
-    {label:"Use of Examples",value:ex,color:"#fb923c"},
   ];
-  const weak=bars.filter(b=>b.value<65);
-  const strong=bars.filter(b=>b.value>=75);
 
-  const tabs=[["overview","Overview"],["analysis","Deep Analysis"],["skills","Skill Gaps"]];
+  const tabs=[["overview","Overview"],["answers","Answers"],["analysis","Deep Analysis"],["skills","Skill Gaps"]];
 
   return(
     <div style={{minHeight:"100vh",background:"var(--bg)"}}>
@@ -225,7 +283,7 @@ export default function ResultPage(){
                 <div className="glass glow-blue-sm" style={{borderRadius:22,padding:28,border:"1px solid var(--border)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minWidth:196}}>
                   <ScoreRing score={s}/>
                   <p style={{fontSize:12,color:"var(--text3)",margin:"14px 0 4px",textAlign:"center"}}>Overall Score</p>
-                  <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",margin:0}}>{s>=75?"Top performance!":s>=50?"Good effort":"Keep going!"}</p>
+                  <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",margin:0}}>{s>=75?"Top performance!":s>=50?"Good effort":s>0?"Keep going!":"No answers submitted"}</p>
                 </div>
                 <div className="glass" style={{borderRadius:22,padding:24,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 16px"}}>Score Breakdown</p>
@@ -238,8 +296,8 @@ export default function ResultPage(){
               {qScores.length>0&&(
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 6px"}}>Per-Question Scores</p>
-                  <p style={{fontSize:12,color:"var(--text3)",margin:"0 0 14px"}}>Click any question to see it + AI critique</p>
-                  <QStrip questions={questions} scores={qScores} critiques={critiques}/>
+                  <p style={{fontSize:12,color:"var(--text3)",margin:"0 0 14px"}}>Click any question to see your answer + AI critique</p>
+                  <QStrip questions={questions} scores={qScores} critiques={critiques} answers={candidateAnswers}/>
                 </div>
               )}
 
@@ -251,13 +309,42 @@ export default function ResultPage(){
             </div>
           )}
 
+          {/* ── ANSWERS ── */}
+          {tab==="answers"&&(
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:17,color:"var(--text)",margin:0}}>
+                  Question-by-Question Review
+                </p>
+                <span style={{fontSize:12,color:"var(--text3)",fontFamily:"monospace"}}>
+                  {candidateAnswers.length} answered / {questions.length} total
+                </span>
+              </div>
+              {questions.map((q,i)=>(
+                <AnswerCard
+                  key={q.id||i}
+                  index={i}
+                  question={q.question_text}
+                  answerText={answerMap[String(q.id)]||""}
+                  score={qScores[i]??0}
+                  critique={critiques[i]||""}
+                />
+              ))}
+              {questions.length===0&&(
+                <div className="glass" style={{borderRadius:18,padding:32,border:"1px solid var(--border)",textAlign:"center"}}>
+                  <p style={{color:"var(--text3)",fontSize:14}}>No questions found for this interview.</p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ── DEEP ANALYSIS ── */}
           {tab==="analysis"&&(
             <div style={{display:"flex",flexDirection:"column",gap:18}}>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:18}}>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 14px",textAlign:"center"}}>Performance Radar</p>
-                  <Radar scores={[tech,comm,clar,dep,ex]}/>
+                  <Radar scores={[tech,comm,clar]} labels={["Technical","Communication","Clarity"]}/>
                 </div>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 16px"}}>Detailed Metrics</p>
@@ -271,7 +358,7 @@ export default function ResultPage(){
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 6px"}}>Question-by-Question</p>
                   <p style={{fontSize:12,color:"var(--text3)",margin:"0 0 14px"}}>Click a score to view question details and AI critique</p>
-                  <QStrip questions={questions} scores={qScores} critiques={critiques}/>
+                  <QStrip questions={questions} scores={qScores} critiques={critiques} answers={candidateAnswers}/>
                   {/* mini bar chart */}
                   <div style={{display:"flex",alignItems:"flex-end",gap:3,height:56,marginTop:16,paddingTop:8,borderTop:"1px solid var(--border)"}}>
                     {qScores.map((sc,i)=>{
@@ -298,23 +385,21 @@ export default function ResultPage(){
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid rgba(52,211,153,.25)",background:"rgba(52,211,153,.04)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#34d399",margin:"0 0 14px"}}>✅ Strong Topics</p>
-                  {(strongTopics.length>0?strongTopics:strong.map(b=>b.label)).map(t=>(
+                  {strongTopics.length>0?strongTopics.map(t=>(
                     <div key={t} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <div style={{width:7,height:7,borderRadius:"50%",background:"#34d399",flexShrink:0}}/>
                       <span style={{fontSize:14,color:"var(--text2)"}}>{t}</span>
                     </div>
-                  ))}
-                  {strongTopics.length===0&&strong.length===0&&<p style={{fontSize:13,color:"var(--text3)"}}>Complete more sessions to identify strong topics.</p>}
+                  )):<p style={{fontSize:13,color:"var(--text3)"}}>No strong topics identified yet.</p>}
                 </div>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid rgba(248,113,113,.25)",background:"rgba(248,113,113,.04)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#f87171",margin:"0 0 14px"}}>⚠️ Skill Gaps</p>
-                  {(skillGaps.length>0?skillGaps:weak.map(b=>b.label)).map(t=>(
+                  {skillGaps.length>0?skillGaps.map(t=>(
                     <div key={t} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <div style={{width:7,height:7,borderRadius:"50%",background:"#f87171",flexShrink:0}}/>
                       <span style={{fontSize:14,color:"var(--text2)"}}>{t}</span>
                     </div>
-                  ))}
-                  {skillGaps.length===0&&weak.length===0&&<p style={{fontSize:13,color:"var(--text3)"}}>No major skill gaps found!</p>}
+                  )):<p style={{fontSize:13,color:"var(--text3)"}}>No major skill gaps found!</p>}
                 </div>
               </div>
 
@@ -376,3 +461,4 @@ export default function ResultPage(){
     </div>
   );
 }
+

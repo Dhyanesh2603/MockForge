@@ -20,6 +20,23 @@ import {
   evaluateInterview,
 } from "../services/evaluationService.js";
 
+// Helper to build the full result object from DB row + evaluation_data
+function buildFullResult(dbResult, answers) {
+  const evalData = dbResult.evaluation_data || {};
+  return {
+    ...dbResult,
+    overallScore: dbResult.overall_score || 0,
+    technicalScore: evalData.technicalScore || 0,
+    communicationScore: evalData.communicationScore || 0,
+    clarityScore: evalData.clarityScore || 0,
+    questionScores: evalData.questionScores || [],
+    questionCritiques: evalData.questionCritiques || [],
+    skillGaps: evalData.skillGaps || [],
+    strongTopics: evalData.strongTopics || [],
+    answers: answers || [],
+  };
+}
+
 export const submitInterview =
   async (req, res) => {
     try {
@@ -42,34 +59,6 @@ export const submitInterview =
         });
       }
 
-      const existingResult =
-        await getInterviewResult(
-          interviewId
-        );
-
-      if (existingResult && existingResult.overall_score !== 78 && req.query.reEvaluate !== "true") {
-        return res.status(200).json({
-          message:
-            "Result already exists",
-          result: {
-            ...existingResult,
-            overallScore: existingResult.overall_score,
-            technicalScore: Math.min(
-              Math.round(existingResult.overall_score * 0.95 + 3),
-              100
-            ),
-            communicationScore: Math.min(
-              Math.round(existingResult.overall_score * 0.9 + 4),
-              100
-            ),
-            clarityScore: Math.min(
-              Math.round(existingResult.overall_score * 1.02 + 1),
-              100
-            ),
-          },
-        });
-      }
-
       const questions =
         await getQuestionsByInterviewId(
           interviewId
@@ -79,6 +68,19 @@ export const submitInterview =
         await getInterviewAnswers(
           interviewId
         );
+
+      // Check for existing valid result (skip re-evaluation unless forced)
+      const existingResult =
+        await getInterviewResult(
+          interviewId
+        );
+
+      if (existingResult && existingResult.evaluation_data?.questionScores?.length > 0 && req.query.reEvaluate !== "true") {
+        return res.status(200).json({
+          message: "Result already exists",
+          result: buildFullResult(existingResult, answers),
+        });
+      }
 
       const evaluation =
         await evaluateInterview({
@@ -91,6 +93,17 @@ export const submitInterview =
           answers,
         });
 
+      // Store the full evaluation data blob
+      const evaluationData = {
+        technicalScore: evaluation.technicalScore,
+        communicationScore: evaluation.communicationScore,
+        clarityScore: evaluation.clarityScore,
+        questionScores: evaluation.questionScores,
+        questionCritiques: evaluation.questionCritiques,
+        skillGaps: evaluation.skillGaps,
+        strongTopics: evaluation.strongTopics,
+      };
+
       const savedResult =
         await saveInterviewResult({
           interviewId,
@@ -102,6 +115,7 @@ export const submitInterview =
             evaluation.weaknesses,
           feedback:
             evaluation.feedback,
+          evaluationData,
         });
 
       await updateInterviewStatus(
@@ -109,18 +123,10 @@ export const submitInterview =
         "completed"
       );
 
-      const fullResult = {
-        ...savedResult,
-        overallScore: savedResult.overall_score || evaluation.overallScore,
-        technicalScore: evaluation.technicalScore,
-        communicationScore: evaluation.communicationScore,
-        clarityScore: evaluation.clarityScore,
-      };
-
       return res.status(200).json({
         message:
           "Interview evaluated successfully",
-        result: fullResult,
+        result: buildFullResult(savedResult, answers),
       });
     } catch (error) {
       console.error(error);
@@ -159,28 +165,19 @@ export const fetchInterviewResult =
           interviewId
         );
 
-      const s = result?.overall_score || 75;
-      const fullResult = result
-        ? {
-            ...result,
-            overallScore: s,
-            technicalScore: Math.min(
-              Math.round(s * 0.95 + 3),
-              100
-            ),
-            communicationScore: Math.min(
-              Math.round(s * 0.9 + 4),
-              100
-            ),
-            clarityScore: Math.min(
-              Math.round(s * 1.02 + 1),
-              100
-            ),
-          }
-        : null;
+      if (!result) {
+        return res.status(404).json({
+          message: "Result not found",
+        });
+      }
+
+      const answers =
+        await getInterviewAnswers(
+          interviewId
+        );
 
       return res.status(200).json({
-        result: fullResult,
+        result: buildFullResult(result, answers),
       });
     } catch (error) {
       console.error(error);
@@ -190,4 +187,4 @@ export const fetchInterviewResult =
           "Failed to fetch result",
       });
     }
-  };
+  };
