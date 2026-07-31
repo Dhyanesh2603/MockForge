@@ -14,12 +14,9 @@ export const loginUser = async (req, res) => {
     if (!user) {
       user = await createUser({
         firebaseUid: firebaseUser.uid,
-
-        name: firebaseUser.name,
-
-        email: firebaseUser.email,
-
-        profilePicture: firebaseUser.picture,
+        name: firebaseUser.name || firebaseUser.email?.split("@")[0] || "User",
+        email: firebaseUser.email || "",
+        profilePicture: firebaseUser.picture || "",
       });
     }
 

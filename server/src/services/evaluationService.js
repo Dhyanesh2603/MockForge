@@ -150,11 +150,16 @@ Return ONLY a valid JSON object in this exact structure:
       const rawText = await callNvidia(prompt);
       const evaluation = extractJson(rawText);
 
+      const overall = Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score) || 78;
+      const tech = Number(evaluation.technicalScore ?? evaluation.technical_score) || Math.min(Math.round(overall * 0.95 + 3), 100);
+      const comm = Number(evaluation.communicationScore ?? evaluation.communication_score) || Math.min(Math.round(overall * 0.9 + 4), 100);
+      const clar = Number(evaluation.clarityScore ?? evaluation.clarity_score) || Math.min(Math.round(overall * 1.02 + 1), 100);
+
       return {
-        overallScore: Number(evaluation.overallScore) || 75,
-        technicalScore: Number(evaluation.technicalScore) || Number(evaluation.overallScore) || 75,
-        communicationScore: Number(evaluation.communicationScore) || Number(evaluation.overallScore) || 75,
-        clarityScore: Number(evaluation.clarityScore) || Number(evaluation.overallScore) || 75,
+        overallScore: overall,
+        technicalScore: tech,
+        communicationScore: comm,
+        clarityScore: clar,
         strengths: evaluation.strengths || "Good understanding of foundational concepts.",
         weaknesses: evaluation.weaknesses || "Could provide deeper technical details and practical examples.",
         feedback: evaluation.feedback || "Solid interview performance overall.",
