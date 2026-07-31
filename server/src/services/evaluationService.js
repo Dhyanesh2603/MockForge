@@ -6,9 +6,8 @@ const NVIDIA_API_URL =
 
 const CANDIDATE_MODELS = [
   process.env.NVIDIA_MODEL,
-  "meta/llama-3.3-70b-instruct",
+  "meta/llama-3.1-8b-instruct",
   "meta/llama-3.1-70b-instruct",
-  "mistralai/mistral-7b-instruct-v0.3",
 ].filter(Boolean);
 
 const extractJson = (text) => {
@@ -49,8 +48,8 @@ const callNvidia = async (prompt) => {
   let lastError = null;
 
   for (const model of CANDIDATE_MODELS) {
-    // Skip non-existent placeholder model string if present in env
-    if (typeof model === "string" && model.includes("deepseek-v4-flash")) {
+    // Skip non-existent or timing out placeholder model strings if present in env
+    if (typeof model === "string" && (model.includes("deepseek-v4-flash") || model.includes("llama-3.3-70b"))) {
       continue;
     }
 
@@ -64,12 +63,12 @@ const callNvidia = async (prompt) => {
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: "system", content: "You are a JSON-only API. Respond strictly with valid JSON. Do not include markdown code block syntax or intro text." },
+            { role: "system", content: "You are an AI interviewer evaluator. Respond strictly with valid JSON. Do not include markdown code block syntax or intro text." },
             { role: "user", content: prompt },
           ],
-          temperature: 0.3,
+          temperature: 0.2,
           top_p: 1,
-          max_tokens: 2048,
+          max_tokens: 1536,
         }),
       });
 
@@ -109,8 +108,8 @@ export const evaluateInterview =
             const matchingAnswer =
               answers.find(
                 (answer) =>
-                  answer.question_id ===
-                  question.id
+                  String(answer.question_id) ===
+                  String(question.id)
               );
 
             return `

@@ -6,9 +6,8 @@ const NVIDIA_API_URL =
 
 const CANDIDATE_MODELS = [
   process.env.NVIDIA_MODEL,
-  "meta/llama-3.3-70b-instruct",
+  "meta/llama-3.1-8b-instruct",
   "meta/llama-3.1-70b-instruct",
-  "mistralai/mistral-7b-instruct-v0.3",
 ].filter(Boolean);
 
 const mockQuestions = [
