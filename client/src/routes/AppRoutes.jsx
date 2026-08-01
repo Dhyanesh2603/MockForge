@@ -32,8 +32,8 @@ function AppRoutes() {
         <Route path="/interviews/:id" element={<ProtectedRoute><InterviewDetailsPage /></ProtectedRoute>} />
         <Route path="/results/:interviewId" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
 
-        {/* Adaptive Practice & Analytics Routes (Protected) */}
-        <Route path="/adaptive" element={<ProtectedRoute><AdaptiveInterviewPage /></ProtectedRoute>} />
+        {/* Adaptive Practice Route (Open Practice Mode) */}
+        <Route path="/adaptive" element={<AdaptiveInterviewPage />} />
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
 
         {/* 1v1 Clash Routes (Protected) */}

@@ -70,9 +70,18 @@ export default function VoiceInterviewerControls({
       recognition.onresult = (event) => {
         let finalChunk = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
+          const resultItem = event.results[i][0];
+          const transcript = resultItem?.transcript || "";
+          const confidence = resultItem?.confidence;
+
           if (event.results[i].isFinal) {
-            finalChunk += transcript + " ";
+            // Filter out low confidence background noise / static artifacts
+            if (confidence === undefined || confidence >= 0.45) {
+              const cleaned = transcript.trim();
+              if (cleaned.length > 1 && !/^(um|uh|ah|hh|mm)$/i.test(cleaned)) {
+                finalChunk += transcript + " ";
+              }
+            }
           }
         }
 
