@@ -223,14 +223,19 @@ export default function ClashLobbyPage() {
                     </label>
                     <select
                       value={numQuestions}
-                      onChange={(e) => setNumQuestions(e.target.value)}
+                      onChange={(e) => setNumQuestions(Number(e.target.value))}
                       style={{
                         width: "100%", padding: "10px 14px", borderRadius: 12,
                         background: "var(--bg2)", border: "1px solid var(--border)", color: "var(--text)", fontSize: 14
                       }}
                     >
-                      <option value={3}>3 Questions</option>
-                      <option value={5}>5 Questions</option>
+                      <option value={1}>1 Question (Quick Duel)</option>
+                      <option value={2}>2 Questions</option>
+                      <option value={3}>3 Questions (Standard)</option>
+                      <option value={4}>4 Questions</option>
+                      <option value={5}>5 Questions (Extended)</option>
+                      <option value={7}>7 Questions</option>
+                      <option value={10}>10 Questions (Marathon)</option>
                     </select>
                   </div>
                 </div>
