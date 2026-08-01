@@ -205,119 +205,166 @@ export default function ClashMatchPage() {
   {/* WAITING PAGE WHEN USER HAS SUBMITTED */}
   if (isSubmitted || isSubmitting) {
     return (
-      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+        <NavBar onLogoClick={() => navigate("/dashboard")} />
         <div className="bg-grid" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />
-        <div className="glass glow-red-sm afu" style={{ borderRadius: 28, padding: 40, border: "1px solid var(--border)", textAlign: "center", maxWidth: 540, width: "100%", position: "relative", zIndex: 1 }}>
-          
-          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(244,63,94,0.12)", border: "1px solid rgba(244,63,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 26 }}>
-            {evaluatingMsg ? "🤖" : opponentSubmitted ? "⚔️" : "⏳"}
-          </div>
 
-          <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".15em" }}>
-            1v1 CLASH ARENA
-          </span>
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, position: "relative", zIndex: 1 }}>
+          <div className="glass glow-red-sm afu" style={{ borderRadius: 28, padding: 40, border: "1px solid var(--border)", textAlign: "center", maxWidth: 540, width: "100%" }}>
+            
+            <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(10,165,236,0.12)", border: "1px solid rgba(10,165,236,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+              <div style={{ width: 28, height: 28, borderRadius: "50%", border: "3px solid #0ba5ec", borderTopColor: "transparent" }} className="asp" />
+            </div>
 
-          <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 800, color: "var(--text)", margin: "8px 0 12px" }}>
-            {evaluatingMsg ? "AI Parallel Evaluation in Progress..." : opponentSubmitted ? "Both Candidates Submitted!" : "Waiting for Opponent to Finish..."}
-          </h2>
+            <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--forge)", fontWeight: 800, textTransform: "uppercase", letterSpacing: ".15em" }}>
+              1v1 CODE BATTLE
+            </span>
 
-          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6, margin: "0 0 28px" }}>
-            {evaluatingMsg || (opponentSubmitted ? "Evaluating both candidates parallely for technical accuracy and depth..." : "Your solutions have been recorded cleanly. You will automatically transition to results as soon as your opponent submits!")}
-          </p>
+            <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 800, color: "var(--text)", margin: "8px 0 12px" }}>
+              {evaluatingMsg ? "AI Code & Complexity Evaluation in Progress..." : opponentSubmitted ? "Both Candidates Submitted!" : "Code Submitted! Waiting for Opponent Result..."}
+            </h2>
 
-          {/* Live Status Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "left" }}>
-            {/* Candidate Status */}
-            <div style={{ padding: "14px 18px", borderRadius: 16, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16 }}>👤</span>
-                <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700 }}>Your Status</span>
+            <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6, margin: "0 0 28px" }}>
+              {evaluatingMsg || (opponentSubmitted ? "Evaluating both code submissions for algorithmic correctness, time complexity, and efficiency..." : "Your code solutions have been submitted successfully. Waiting for your opponent to finish so the AI can declare the winner!")}
+            </p>
+
+            {/* Live Status Cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "left" }}>
+              {/* Your Status */}
+              <div style={{ padding: "14px 18px", borderRadius: 16, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700, display: "block" }}>Your Submission</span>
+                  <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>All questions answered & locked</span>
+                </div>
+                <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: "#10b981", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
+                  ✓ SUBMITTED
+                </span>
               </div>
-              <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: "#10b981", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
-                ✓ SUBMITTED
-              </span>
-            </div>
 
-            {/* Opponent Status */}
-            <div style={{ padding: "14px 18px", borderRadius: 16, background: opponentSubmitted ? "rgba(16,185,129,0.08)" : "rgba(244,63,94,0.08)", border: opponentSubmitted ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(244,63,94,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16 }}>⚔️</span>
-                <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700 }}>Opponent Status</span>
+              {/* Opponent Live Status & Progress */}
+              <div style={{ padding: "16px 18px", borderRadius: 16, background: opponentSubmitted ? "rgba(16,185,129,0.08)" : "rgba(11,165,236,0.08)", border: opponentSubmitted ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(11,165,236,0.3)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div>
+                    <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700, display: "block" }}>Opponent Status</span>
+                    <span style={{ fontSize: 11, color: opponentSubmitted ? "#10b981" : "var(--forge)", fontWeight: 600 }}>
+                      {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently working on Question ${opponentIdx + 1} of ${questions.length}`}
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: opponentSubmitted ? "#10b981" : "#0ba5ec", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
+                    {opponentSubmitted ? "✓ SUBMITTED" : `ON Q${opponentIdx + 1}/${questions.length}`}
+                  </span>
+                </div>
+
+                {/* Progress Bar */}
+                <div style={{ width: "100%", height: 6, background: "var(--bg3)", borderRadius: 999, overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: opponentSubmitted ? "#10b981" : "#0ba5ec", width: `${((opponentIdx + 1) / (questions.length || 1)) * 100}%`, transition: "width 0.3s" }} />
+                </div>
               </div>
-              <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: opponentSubmitted ? "#10b981" : "#f43f5e", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
-                {opponentSubmitted ? "✓ SUBMITTED" : `ON Q${opponentIdx + 1}/${questions.length || 1}`}
-              </span>
-            </div>
-          </div>
-
-          {/* Loading Indicator / Exit Action */}
-          <div style={{ marginTop: 28, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text3)", fontSize: 12, fontFamily: "monospace" }}>
-              <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #f43f5e", borderTopColor: "transparent" }} className="asp" />
-              <span>{evaluatingMsg ? "Running parallel AI score analysis..." : "Syncing live opponent state..."}</span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => navigate("/clash")}
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "var(--text3)",
-                fontSize: 12,
-                cursor: "pointer",
-                textDecoration: "underline",
-              }}
-            >
-              Exit to Clash Lobby
-            </button>
-          </div>
+            {/* Actions */}
+            <div style={{ marginTop: 28, display: "flex", justifyContent: "center", gap: 12 }}>
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className="btn-press"
+                style={{
+                  padding: "10px 24px",
+                  borderRadius: 12,
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text2)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Exit to Dashboard
+              </button>
+            </div>
 
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+      <NavBar onLogoClick={() => setShowAbortModal(true)} />
       <div className="bg-grid" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />
-      <div style={{ position: "relative", zIndex: 1 }}>
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column" }}>
         {/* Proctoring Overlay */}
         {isProctored && <ProctoringOverlay proctoring={proctoring} />}
 
-        {/* Abort / End Challenge Confirmation Modal */}
+        {/* Abort / Exit Challenge Confirmation Modal */}
         {showAbortModal && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
             <div className="glass glow-red-sm afu" style={{ borderRadius: 24, padding: 32, maxWidth: 440, width: "100%", border: "1px solid var(--border)", textAlign: "center" }}>
-              <span style={{ fontSize: 36, display: "block", marginBottom: 12 }}>🛑</span>
-              <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: "0 0 10px" }}>
-                Abort 1v1 Clash Challenge?
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  color: "var(--red)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </div>
+
+              <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: "0 0 8px" }}>
+                Exit 1v1 Challenge?
               </h3>
               <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" }}>
-                Are you sure you want to end this challenge early? Your current answers will be submitted immediately for parallel AI evaluation.
+                Are you sure you want to exit the challenge? Your current code solutions will be submitted immediately for evaluation.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <button
-                  type="button"
-                  onClick={doAutoSubmit}
-                  className="btn-press glow-red-sm"
-                  style={{
-                    padding: "12px", borderRadius: 14, border: "none",
-                    background: "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff",
-                    fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
-                  }}
-                >
-                  Submit & End Challenge ⚔️
-                </button>
+              <div style={{ display: "flex", gap: 12 }}>
                 <button
                   type="button"
                   onClick={() => setShowAbortModal(false)}
+                  className="btn-press"
                   style={{
-                    padding: "10px", borderRadius: 14, border: "1px solid var(--border)",
-                    background: "var(--surface)", color: "var(--text2)", fontSize: 13, fontWeight: 600, cursor: "pointer"
+                    flex: 1,
+                    padding: "11px 18px",
+                    borderRadius: 12,
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
                   }}
                 >
-                  Continue Interview
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={doAutoSubmit}
+                  className="btn-press"
+                  style={{
+                    flex: 1,
+                    padding: "11px 18px",
+                    borderRadius: 12,
+                    background: "var(--red)",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(239,68,68,0.35)",
+                  }}
+                >
+                  Exit & Submit
                 </button>
               </div>
             </div>
@@ -340,27 +387,52 @@ export default function ClashMatchPage() {
                 gap: 16,
               }}
             >
-              {/* Question Navigation Tabs */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
-                {questions.map((q, idx) => (
+              {/* Question Navigation Tabs & Header Controls */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: 12, gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  {questions.map((q, idx) => (
+                    <button
+                      key={q.id}
+                      onClick={() => handleQuestionSwitch(idx)}
+                      className="btn-press"
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        border: currentIdx === idx ? "none" : "1px solid var(--border)",
+                        background: currentIdx === idx ? "var(--forge)" : "var(--bg2)",
+                        color: currentIdx === idx ? "#fff" : "var(--text2)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      Q{idx + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text2)", fontWeight: 700 }}>
+                    ⏳ {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+                  </span>
                   <button
-                    key={q.id}
-                    onClick={() => handleQuestionSwitch(idx)}
+                    type="button"
+                    onClick={() => setShowAbortModal(true)}
                     className="btn-press"
                     style={{
-                      padding: "6px 14px",
+                      padding: "6px 12px",
                       borderRadius: 8,
-                      border: currentIdx === idx ? "none" : "1px solid var(--border)",
-                      background: currentIdx === idx ? "var(--forge)" : "var(--bg2)",
-                      color: currentIdx === idx ? "#fff" : "var(--text2)",
+                      background: "rgba(239, 68, 68, 0.12)",
+                      border: "1px solid rgba(239, 68, 68, 0.3)",
+                      color: "#f87171",
                       fontSize: 12,
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
                   >
-                    Q{idx + 1}
+                    Exit Challenge
                   </button>
-                ))}
+                </div>
               </div>
 
               {/* Header Title & Difficulty */}
