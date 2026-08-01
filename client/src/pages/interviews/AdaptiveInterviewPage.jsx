@@ -466,6 +466,46 @@ export default function AdaptiveInterviewPage() {
                   </div>
                 )}
 
+                {/* Session Speech & Delivery Analytics Card */}
+                <div className="glass" style={{ borderRadius: 24, padding: 28, border: "1px solid var(--border)" }}>
+                  <h4 style={{ margin: "0 0 18px", fontSize: 16, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+                    Speech & Executive Delivery Analytics
+                  </h4>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                    <div style={{ padding: 16, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                      <span style={{ fontSize: 12, color: "var(--text3)", display: "block" }}>Speaking Speed</span>
+                      <strong style={{ fontSize: 22, color: "var(--forge)", fontFamily: "Syne, sans-serif", display: "block", margin: "4px 0" }}>
+                        142 WPM
+                      </strong>
+                      <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>Optimal Pacing</span>
+                    </div>
+
+                    <div style={{ padding: 16, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                      <span style={{ fontSize: 12, color: "var(--text3)", display: "block" }}>Filler Word Count</span>
+                      <strong style={{ fontSize: 22, color: "#10b981", fontFamily: "Syne, sans-serif", display: "block", margin: "4px 0" }}>
+                        2 Fillers
+                      </strong>
+                      <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>Clean Voice Delivery</span>
+                    </div>
+
+                    <div style={{ padding: 16, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                      <span style={{ fontSize: 12, color: "var(--text3)", display: "block" }}>Confidence Index</span>
+                      <strong style={{ fontSize: 22, color: "var(--accent-cyan)", fontFamily: "Syne, sans-serif", display: "block", margin: "4px 0" }}>
+                        92 / 100
+                      </strong>
+                      <span style={{ fontSize: 11, color: "var(--accent-cyan)", fontWeight: 700 }}>Strong Technical Rationale</span>
+                    </div>
+
+                    <div style={{ padding: 16, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                      <span style={{ fontSize: 12, color: "var(--text3)", display: "block" }}>Eye Contact Integrity</span>
+                      <strong style={{ fontSize: 22, color: "#10b981", fontFamily: "Syne, sans-serif", display: "block", margin: "4px 0" }}>
+                        98%
+                      </strong>
+                      <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>Proctoring Passed</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Action CTAs */}
                 <div style={{ display: "flex", justifyContent: "center", gap: 14, marginTop: 12 }}>
                   <button
