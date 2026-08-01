@@ -16,20 +16,30 @@ export default function ClashMatchPage() {
   const [isProctored, setIsProctored] = useState(location.state?.proctored ?? true);
   const proctoring = useProctoring(isProctored);
 
-  const [questions, setQuestions] = useState(location.state?.questions || []);
+  const [rawQuestions, setRawQuestions] = useState(location.state?.questions || []);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [opponentIdx, setOpponentIdx] = useState(0);
   const [opponentSubmitted, setOpponentSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluatingMsg, setEvaluatingMsg] = useState("");
-  const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540); // 9 mins default
-  const [responseMode, setResponseMode] = useState("text"); // "text" | "code"
+  const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540);
+  const [responseMode, setResponseMode] = useState("text");
+  const [loading, setLoading] = useState(!location.state?.questions?.length);
 
   const answersRef = useRef(answers);
   answersRef.current = answers;
 
-  const [loading, setLoading] = useState(!location.state?.questions?.length);
+  // Normalize questions array to handle string arrays or object structures safely
+  const questions = (rawQuestions || []).map((q, idx) => {
+    if (typeof q === "string") {
+      return { id: `q-${idx}`, question_text: q };
+    }
+    return {
+      id: q.id || q.questionId || `q-${idx}`,
+      question_text: q.question_text || q.questionText || q.text || (typeof q === "object" ? JSON.stringify(q) : `Question ${idx + 1}`),
+    };
+  });
 
   useEffect(() => {
     if (!user || !roomCode) return;
@@ -43,7 +53,9 @@ export default function ClashMatchPage() {
         const res = await api.get(`/clash/${roomCode}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!questions.length) setQuestions(res.data.questions || []);
+        if (res.data.questions?.length) {
+          setRawQuestions(res.data.questions);
+        }
         if (res.data.room && res.data.room.proctored !== undefined) {
           setIsProctored(Boolean(res.data.room.proctored));
         }
@@ -93,9 +105,10 @@ export default function ClashMatchPage() {
       socket.off("evaluating_match");
       socket.off("match_completed");
     };
-  }, [user, roomCode, questions.length, navigate]);
+  }, [user, roomCode, navigate]);
 
   const handleAnswerChange = (qId, text) => {
+    if (!qId) return;
     setAnswers((prev) => ({ ...prev, [qId]: text }));
   };
 
@@ -131,14 +144,14 @@ export default function ClashMatchPage() {
 
     socket.emit("submit_answers", {
       roomCode,
-      userId: user.uid,
+      userId: user?.uid,
       answers: formattedAnswers,
     });
   }, [isSubmitting, questions, roomCode, user]);
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
-  const currentQ = questions[currentIdx];
+  const currentQ = questions[currentIdx] || questions[0] || { id: "q-0", question_text: "Loading battle question..." };
 
   if (loading) {
     return (
@@ -174,14 +187,15 @@ export default function ClashMatchPage() {
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <div className="bg-grid" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />
       <div style={{ position: "relative", zIndex: 1 }}>
-        <NavBar showLogout={false} />
+        {/* Proctoring Overlay */}
+        {isProctored && <ProctoringOverlay proctoring={proctoring} />}
 
-        <main style={{ maxWidth: 860, margin: "0 auto", padding: "28px 24px 80px" }}>
+        <main style={{ maxWidth: 960, margin: "0 auto", padding: "28px 24px 80px" }}>
           {/* Top Bar: Progress & Match Timer */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700 }}>
-                QUESTION {currentIdx + 1} OF {questions.length}
+                QUESTION {currentIdx + 1} OF {questions.length || 1}
               </span>
               <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: 0 }}>
                 1v1 Head-to-Head Clash
@@ -202,7 +216,7 @@ export default function ClashMatchPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span style={{ fontSize: 18 }}>⚔️</span>
               <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 600 }}>
-                Opponent Status: {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently on Q${opponentIdx + 1}/${questions.length}`}
+                Opponent Status: {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently on Q${opponentIdx + 1}/${questions.length || 1}`}
               </span>
             </div>
             <div style={{ width: 120, height: 6, background: "var(--bg3)", borderRadius: 999, overflow: "hidden" }}>
@@ -240,31 +254,29 @@ export default function ClashMatchPage() {
                   style={{
                     padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
                     border: responseMode === "code" ? "none" : "1px solid var(--border)",
-                    background: responseMode === "code" ? "linear-gradient(135deg,#0ba5ec,#065986)" : "var(--surface)",
+                    background: responseMode === "code" ? "#f43f5e" : "var(--surface)",
                     color: responseMode === "code" ? "#fff" : "var(--text2)",
                   }}
                 >
-                  💻 1v1 Live Code Sandbox
+                  💻 Code Sandbox
                 </button>
               </div>
 
-              {/* Response Textarea or Code Compiler */}
+              {/* Response Input */}
               {responseMode === "text" ? (
-                <div>
-                  <textarea
-                    rows={7}
-                    value={answers[currentQ.id] || ""}
-                    onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                    placeholder="Write your explanation here..."
-                    style={{
-                      width: "100%", padding: "14px 16px", borderRadius: 16,
-                      background: "var(--bg2)", border: "1px solid var(--border)",
-                      color: "var(--text)", fontSize: 14, lineHeight: 1.6, resize: "vertical"
-                    }}
-                  />
-                </div>
+                <textarea
+                  value={answers[currentQ.id] || ""}
+                  onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+                  placeholder="Type your structured solution and explanation..."
+                  rows={7}
+                  style={{
+                    width: "100%", borderRadius: 14, padding: 16, background: "var(--bg)",
+                    border: "1px solid var(--border)", color: "var(--text)", fontSize: 14, lineHeight: 1.6,
+                    resize: "vertical", outline: "none"
+                  }}
+                />
               ) : (
-                <div style={{ height: 380, marginBottom: 10 }}>
+                <div style={{ height: 380 }}>
                   <CodeCompilerSandbox
                     initialLanguage="javascript"
                     defaultCode={answers[currentQ.id] || ""}
@@ -309,25 +321,16 @@ export default function ClashMatchPage() {
                 disabled={isSubmitting}
                 className="btn-press glow-red-sm"
                 style={{
-                  padding: "12px 32px", borderRadius: 14, border: "none",
-                  background: "linear-gradient(135deg, #34d399, #10b981)", color: "#fff",
-                  fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 15, cursor: "pointer"
+                  padding: "10px 28px", borderRadius: 12, border: "none",
+                  background: "linear-gradient(135deg, #f43f5e, #be123c)", color: "#fff",
+                  fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
                 }}
               >
-                Submit Clash Answers ⚡
+                {isSubmitting ? "Submitting..." : "Finish Battle & Submit ⚔️"}
               </button>
             )}
           </div>
         </main>
-
-        {isProctored && (
-          <ProctoringOverlay
-            videoRef={proctoring.videoRef}
-            cameraActive={proctoring.cameraActive}
-            integrityScore={proctoring.integrityScore}
-            warningToast={proctoring.warningToast}
-          />
-        )}
       </div>
     </div>
   );
