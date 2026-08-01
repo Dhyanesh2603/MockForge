@@ -17,6 +17,8 @@ export default function VoiceInterviewerControls({
   const [selectedVoice, setSelectedVoice] = useState(null);
 
   const recognitionRef = useRef(null);
+  const onTranscriptRef = useRef(onTranscript);
+  onTranscriptRef.current = onTranscript;
 
   // Initialize Speech Synthesis Voices
   useEffect(() => {
@@ -28,10 +30,12 @@ export default function VoiceInterviewerControls({
     const updateVoices = () => {
       const availableVoices = window.speechSynthesis.getVoices();
       setVoices(availableVoices);
-      // Default to English voice
-      const engVoice = availableVoices.find(
-        (v) => v.lang.startsWith("en") && (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Samantha"))
-      ) || availableVoices.find((v) => v.lang.startsWith("en"));
+      const engVoice =
+        availableVoices.find(
+          (v) =>
+            v.lang.startsWith("en") &&
+            (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Samantha"))
+        ) || availableVoices.find((v) => v.lang.startsWith("en"));
       if (engVoice) setSelectedVoice(engVoice.name);
     };
 
@@ -43,47 +47,68 @@ export default function VoiceInterviewerControls({
     };
   }, []);
 
-  // Initialize Speech Recognition (STT)
+  // Initialize & configure Speech Recognition
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition) {
+      console.warn("Web SpeechRecognition API is not supported in this browser.");
+      return;
+    }
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = "en-US";
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
 
-    recognition.onresult = (event) => {
-      let interimTranscript = "";
-      let finalTranscript = "";
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
-        } else {
-          interimTranscript += transcript;
+      recognition.onresult = (event) => {
+        let finalChunk = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalChunk += transcript + " ";
+          }
         }
+
+        if (finalChunk && onTranscriptRef.current) {
+          const textToAppend = finalChunk.trim();
+          onTranscriptRef.current((prevText = "") => {
+            const trimmedPrev = (prevText || "").trim();
+            return trimmedPrev ? `${trimmedPrev} ${textToAppend}` : textToAppend;
+          });
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("Speech recognition notice:", event.error);
+        if (event.error !== "no-speech") {
+          setIsListening(false);
+        }
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = recognition;
+    } catch (err) {
+      console.warn("Error instantiating SpeechRecognition:", err);
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
       }
-
-      if (finalTranscript) {
-        onTranscript((prev) => (prev ? prev + " " + finalTranscript : finalTranscript).trim());
-      }
     };
-
-    recognition.onerror = (event) => {
-      console.warn("Speech recognition error:", event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-    };
-
-    recognitionRef.current = recognition;
-  }, [onTranscript]);
+  }, []);
 
   // Read question aloud (TTS)
   const speakQuestion = () => {
@@ -114,20 +139,54 @@ export default function VoiceInterviewerControls({
 
   // Toggle Microphone Dictation (STT)
   const toggleListening = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Speech-to-Text dictation is not supported in this browser. Please use Chrome or Edge.");
       return;
     }
 
+    if (!recognitionRef.current) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = "en-US";
+        recognition.onstart = () => setIsListening(true);
+        recognition.onresult = (event) => {
+          let finalChunk = "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              finalChunk += event.results[i][0].transcript + " ";
+            }
+          }
+          if (finalChunk && onTranscriptRef.current) {
+            const textToAppend = finalChunk.trim();
+            onTranscriptRef.current((prevText = "") => {
+              const trimmedPrev = (prevText || "").trim();
+              return trimmedPrev ? `${trimmedPrev} ${textToAppend}` : textToAppend;
+            });
+          }
+        };
+        recognition.onerror = () => setIsListening(false);
+        recognition.onend = () => setIsListening(false);
+        recognitionRef.current = recognition;
+      } catch (e) {}
+    }
+
     if (isListening) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {}
       setIsListening(false);
     } else {
       try {
         recognitionRef.current.start();
         setIsListening(true);
       } catch (err) {
-        console.warn("STT start error:", err);
+        console.warn("STT start issue:", err);
+        setIsListening(false);
       }
     }
   };
@@ -160,9 +219,9 @@ export default function VoiceInterviewerControls({
             gap: 6,
             padding: "6px 12px",
             borderRadius: 999,
-            background: isSpeaking ? "rgba(244, 63, 94, 0.15)" : "var(--surface)",
-            border: isSpeaking ? "1px solid #f43f5e" : "1px solid var(--border)",
-            color: isSpeaking ? "#f43f5e" : "var(--text)",
+            background: isSpeaking ? "rgba(239, 68, 68, 0.15)" : "var(--surface)",
+            border: isSpeaking ? "1px solid var(--red)" : "1px solid var(--border)",
+            color: isSpeaking ? "var(--red)" : "var(--text)",
             fontSize: 12,
             fontWeight: 600,
             cursor: "pointer",
@@ -209,14 +268,14 @@ export default function VoiceInterviewerControls({
           padding: "6px 14px",
           borderRadius: 999,
           background: isListening
-            ? "linear-gradient(135deg, #f43f5e, #e11d48)"
+            ? "linear-gradient(135deg, #ef4444, #dc2626)"
             : "rgba(var(--forge-rgb), 0.12)",
           border: isListening ? "none" : "1px solid rgba(var(--forge-rgb), 0.3)",
           color: isListening ? "#fff" : "var(--forge)",
           fontSize: 12,
           fontWeight: 700,
           cursor: "pointer",
-          boxShadow: isListening ? "0 0 12px rgba(244,63,94,0.4)" : "none",
+          boxShadow: isListening ? "0 0 14px rgba(239,68,68,0.4)" : "none",
         }}
       >
         <span
@@ -225,10 +284,10 @@ export default function VoiceInterviewerControls({
             height: 8,
             borderRadius: "50%",
             background: isListening ? "#fff" : "var(--forge)",
-            animation: isListening ? "pulse 1s infinite" : "none",
+            animation: isListening ? "pulseGlow 1s infinite" : "none",
           }}
         />
-        <span>{isListening ? "🎙️ Listening... (Stop)" : "🎙️ Voice Answer"}</span>
+        <span>{isListening ? "🎙️ Listening... (Click to Stop)" : "🎙️ Voice Answer"}</span>
       </button>
     </div>
   );

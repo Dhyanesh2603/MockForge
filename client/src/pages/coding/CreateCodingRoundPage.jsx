@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import api from "../../services/api";
 import NavBar from "../../components/NavBar";
 
-const TOPICS = [
-  { id: "arrays", name: "Arrays & Hashing", desc: "Two Sum, Anagrams, Matrix Transpose" },
+const SUGGESTED_TOPICS = [
+  { id: "arrays", name: "Arrays & Hashing", desc: "Two Sum, Anagrams, Subarray Sum" },
+  { id: "dp", name: "Dynamic Programming", desc: "Climbing Stairs, Coin Change, Knapsack" },
   { id: "pointers", name: "Two Pointers & Sliding Window", desc: "Container With Most Water, Substrings" },
-  { id: "dp", name: "Dynamic Programming", desc: "Climbing Stairs, Coin Change, Fibonacci" },
   { id: "trees", name: "Trees & Graphs", desc: "Binary Tree Traversal, BFS/DFS, Invert Tree" },
-  { id: "strings", name: "String Manipulation", desc: "Reverse Words, Palindrome, Regex Match" },
+  { id: "strings", name: "String Manipulation", desc: "Reverse Words, Palindromes, Matching" },
   { id: "system", name: "System Logic & Algorithms", desc: "LRU Cache, Rate Limiter, Binary Search" },
 ];
 
@@ -16,23 +18,63 @@ const QUESTION_COUNTS = [1, 3, 5];
 
 export default function CreateCodingRoundPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const [topic, setTopic] = useState("arrays");
+  const [customTopic, setCustomTopic] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("arrays");
   const [difficulty, setDifficulty] = useState("Medium");
   const [numQuestions, setNumQuestions] = useState(3);
   const [language, setLanguage] = useState("javascript");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleStartCoding = () => {
-    // Generate unique session ID for practice
-    const roundId = "code-" + Date.now().toString(36);
-    navigate(`/coding/${roundId}`, {
-      state: {
-        topic,
-        difficulty,
-        numQuestions,
-        language,
-      },
-    });
+  const activeTopic = customTopic.trim() || selectedTopic;
+
+  const handleStartCoding = async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      let challenges = [];
+
+      if (user) {
+        try {
+          const token = await user.getIdToken();
+          const res = await api.post(
+            "/interviews/coding/generate",
+            {
+              topic: activeTopic,
+              difficulty,
+              numQuestions: Number(numQuestions),
+            },
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          if (res.data.challenges) {
+            challenges = res.data.challenges;
+          }
+        } catch (apiErr) {
+          console.warn("AI generation API fallback:", apiErr);
+        }
+      }
+
+      const roundId = "code-" + Date.now().toString(36);
+      navigate(`/coding/${roundId}`, {
+        state: {
+          topic: activeTopic,
+          difficulty,
+          numQuestions: Number(numQuestions),
+          language,
+          challenges,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Failed to generate coding round. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -47,44 +89,70 @@ export default function CreateCodingRoundPage() {
             <span style={{ fontFamily: "monospace", fontSize: 11, color: "var(--forge)", textTransform: "uppercase", letterSpacing: ".1em" }}>
               Dedicated Coding Round Platform
             </span>
-            <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "clamp(2rem,4vw,2.8rem)", background: "linear-gradient(135deg,#0ba5ec,#0284c7,#38bdf8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: "10px 0 12px" }}>
-              Configure Coding Practice Round
+            <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "clamp(2rem,4vw,2.8rem)", background: "linear-gradient(135deg,#818cf8,#6366f1,#38bdf8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: "10px 0 12px" }}>
+              Configure AI Coding Practice Round
             </h1>
             <p style={{ color: "var(--text2)", fontSize: 15, maxWidth: 540, margin: "0 auto", lineHeight: 1.6 }}>
-              Select your target topic, difficulty, and preferred language. Practice with live test case evaluation and hidden test verification.
+              Type any custom topic or select a domain below. AI will generate dynamic problems with sample test cases and secured hidden test cases.
             </p>
           </div>
 
           {/* Form Card */}
           <div className="glass" style={{ borderRadius: 24, padding: 32, border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 28 }}>
             
-            {/* Topic Selection */}
+            {/* Custom Topic Input */}
             <div>
-              <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 12 }}>
-                1. Select Coding Topic
+              <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>
+                1. Custom Topic / Subject <span style={{ fontSize: 12, color: "var(--text3)", fontWeight: 400 }}>(e.g. Binary Search Trees, Graph Algorithms, System Logic)</span>
               </label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {TOPICS.map((t) => (
-                  <div
-                    key={t.id}
-                    onClick={() => setTopic(t.id)}
-                    style={{
-                      padding: 16,
-                      borderRadius: 16,
-                      cursor: "pointer",
-                      border: topic === t.id ? "1.5px solid var(--forge)" : "1px solid var(--border)",
-                      background: topic === t.id ? "rgba(var(--forge-rgb),.08)" : "var(--bg2)",
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <h4 style={{ margin: "0 0 4px", fontSize: 14, fontWeight: 700, color: topic === t.id ? "var(--forge)" : "var(--text)" }}>
-                      {t.name}
-                    </h4>
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--text3)" }}>{t.desc}</p>
-                  </div>
-                ))}
-              </div>
+              <input
+                type="text"
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
+                placeholder="Type ANY custom topic (e.g. Sliding Window, Trie, Dynamic Programming)..."
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  borderRadius: 14,
+                  border: "1px solid var(--border)",
+                  background: "var(--bg2)",
+                  color: "var(--text)",
+                  padding: "12px 16px",
+                  fontSize: 14,
+                  outline: "none",
+                }}
+              />
             </div>
+
+            {/* Suggested Domains */}
+            {!customTopic.trim() && (
+              <div>
+                <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: "var(--text2)", marginBottom: 10 }}>
+                  Or Choose a Suggested Domain:
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {SUGGESTED_TOPICS.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => setSelectedTopic(t.id)}
+                      style={{
+                        padding: 14,
+                        borderRadius: 14,
+                        cursor: "pointer",
+                        border: selectedTopic === t.id ? "1.5px solid var(--forge)" : "1px solid var(--border)",
+                        background: selectedTopic === t.id ? "rgba(var(--forge-rgb),.1)" : "var(--bg2)",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <h4 style={{ margin: "0 0 4px", fontSize: 13, fontWeight: 700, color: selectedTopic === t.id ? "var(--forge)" : "var(--text)" }}>
+                        {t.name}
+                      </h4>
+                      <p style={{ margin: 0, fontSize: 11, color: "var(--text3)" }}>{t.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Difficulty */}
             <div>
@@ -106,9 +174,9 @@ export default function CreateCodingRoundPage() {
                       cursor: "pointer",
                       border: difficulty === d ? "none" : "1px solid var(--border)",
                       background: difficulty === d
-                        ? d === "Easy" ? "#34d399" : d === "Medium" ? "#fbbf24" : "#f87171"
+                        ? d === "Easy" ? "#10b981" : d === "Medium" ? "#f59e0b" : "#ef4444"
                         : "var(--bg2)",
-                      color: difficulty === d ? "#000" : "var(--text2)",
+                      color: difficulty === d ? "#fff" : "var(--text2)",
                     }}
                   >
                     {d}
@@ -117,7 +185,7 @@ export default function CreateCodingRoundPage() {
               </div>
             </div>
 
-            {/* Number of Questions & Preferred Language */}
+            {/* Questions & Language */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
               <div>
                 <label style={{ display: "block", fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 10 }}>
@@ -173,10 +241,13 @@ export default function CreateCodingRoundPage() {
               </div>
             </div>
 
+            {error && <p style={{ color: "var(--red)", fontSize: 13, margin: 0 }}>{error}</p>}
+
             {/* Start Button */}
             <button
               type="button"
               onClick={handleStartCoding}
+              disabled={loading}
               className="bg-forge-gradient btn-press"
               style={{
                 width: "100%",
@@ -186,12 +257,12 @@ export default function CreateCodingRoundPage() {
                 color: "#fff",
                 fontSize: 15,
                 fontWeight: 700,
-                cursor: "pointer",
+                cursor: loading ? "not-allowed" : "pointer",
                 boxShadow: "0 10px 30px rgba(var(--forge-rgb),.3)",
                 marginTop: 8,
               }}
             >
-              🚀 Launch Coding Arena Session
+              {loading ? "⚡ Generating AI Coding Challenges..." : "🚀 Launch AI Coding Arena"}
             </button>
           </div>
         </main>

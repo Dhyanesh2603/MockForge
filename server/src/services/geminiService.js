@@ -246,3 +246,91 @@ CRITICAL REQUIREMENTS:
     return sampleUnique(pool, targetCount);
   }
 };
+
+/**
+ * generateCodingChallenge — Dynamic AI Generator for Coding Arena
+ * Generates custom coding problem statements, sample test cases, and secured hidden test cases
+ * for any custom user topic.
+ */
+export const generateCodingChallenge = async ({ topic, difficulty = "Medium", numQuestions = 3 }) => {
+  try {
+    const prompt = `
+You are an expert technical coding challenge creator. Generate ${numQuestions} algorithmic or system coding challenges for the topic "${topic}" at ${difficulty} difficulty.
+
+OUTPUT FORMAT: Return ONLY a valid JSON array of objects.
+Each object must have the following structure:
+{
+  "id": "code-1",
+  "title": "Problem Title",
+  "difficulty": "${difficulty}",
+  "description": "Clear problem description explaining what function to write and requirements.",
+  "inputFormat": "Description of input parameters.",
+  "outputFormat": "Description of return value.",
+  "sampleTestCases": [
+    { "input": "sample input text", "expected": "sample expected output" }
+  ],
+  "hiddenTestCases": [
+    { "input": "hidden test input 1", "expected": "hidden expected output 1" },
+    { "input": "hidden test input 2", "expected": "hidden expected output 2" }
+  ]
+}
+
+CRITICAL RULES:
+1. Return EXACTLY ${numQuestions} problem objects.
+2. Ensure both sampleTestCases and hiddenTestCases have clear inputs and outputs.
+3. Output MUST be valid JSON array with NO markdown syntax, NO \`\`\`json.
+`;
+
+    const text = await callNvidia(prompt);
+    let challenges = [];
+    try {
+      const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+      challenges = JSON.parse(cleaned);
+    } catch (e) {
+      console.warn("Parsing AI coding JSON failed, returning structured fallback.");
+    }
+
+    if (Array.isArray(challenges) && challenges.length > 0) {
+      return challenges;
+    }
+
+    // Default Fallback Generator if AI response parsing failed
+    return [
+      {
+        id: "code-gen-1",
+        title: `${topic} Challenge: Core Algorithm`,
+        difficulty: difficulty,
+        description: `Implement an optimized algorithm for ${topic}. Write a function that processes the input array and returns the computed result according to requirements.`,
+        inputFormat: `Array of integers or input string for ${topic}.`,
+        outputFormat: "Computed integer or output structure.",
+        sampleTestCases: [
+          { input: "input = [2, 7, 11, 15], target = 9", expected: "[0, 1]" },
+          { input: "input = [3, 2, 4], target = 6", expected: "[1, 2]" },
+        ],
+        hiddenTestCases: [
+          { input: "input = [3, 3], target = 6", expected: "[0, 1]" },
+          { input: "input = [1, 5, 8, 3], target = 11", expected: "[2, 3]" },
+        ],
+      },
+    ];
+  } catch (err) {
+    console.error("Coding challenge generation error:", err);
+    return [
+      {
+        id: "code-gen-fallback",
+        title: `${topic} Algorithmic Challenge`,
+        difficulty: difficulty,
+        description: `Write a function to solve the ${topic} problem efficiently.`,
+        inputFormat: "Input data structure.",
+        outputFormat: "Expected output result.",
+        sampleTestCases: [
+          { input: "nums = [1, 2, 3]", expected: "6" }
+        ],
+        hiddenTestCases: [
+          { input: "nums = [4, 5, 6]", expected: "15" },
+          { input: "nums = [10, 20]", expected: "30" }
+        ]
+      }
+    ];
+  }
+};
