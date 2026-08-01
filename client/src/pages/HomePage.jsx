@@ -177,10 +177,10 @@ export default function HomePage() {
             style={{
               fontFamily: "Syne, sans-serif",
               fontWeight: 800,
-              fontSize: "clamp(2.5rem, 5.8vw, 4.4rem)",
-              lineHeight: 1.08,
+              fontSize: "clamp(2rem, 4.2vw, 3.2rem)",
+              lineHeight: 1.15,
               letterSpacing: "-0.03em",
-              margin: "0 0 24px",
+              margin: "0 0 20px",
             }}
           >
             Ace Technical Interviews with <br />
