@@ -142,7 +142,7 @@ export default function ClashLobbyPage() {
                         cursor: "pointer",
                       }}
                     >
-                      💻 1v1 AI Code Clash
+                      1v1 Code
                     </button>
 
                     <button
@@ -160,7 +160,7 @@ export default function ClashLobbyPage() {
                         cursor: "pointer",
                       }}
                     >
-                      🗣️ Voice Interview Clash
+                      Interview
                     </button>
                   </div>
                 </div>
