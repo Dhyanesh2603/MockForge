@@ -53,6 +53,17 @@ export default function HomePage() {
     setActiveFaq(activeFaq === idx ? null : idx);
   };
 
+  const handleNavClick = (e, targetId, tabKey) => {
+    e.preventDefault();
+    if (tabKey) {
+      setActiveDemoTab(tabKey);
+    }
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--text)", overflowX: "hidden" }}>
       {/* Background Grid & Gradient Orbs */}
@@ -81,16 +92,17 @@ export default function HomePage() {
           {/* Nav Items */}
           <div style={{ display: "flex", alignItems: "center", gap: 28 }} className="hidden-mobile">
             {[
-              ["Features", "#features"],
-              ["Proctoring", "#proctoring"],
-              ["Coding Arena", "#coding-arena"],
-              ["1v1 Clash", "#clash"],
-              ["How It Works", "#how-it-works"],
-              ["FAQ", "#faq"],
-            ].map(([label, href]) => (
+              { label: "Features", targetId: "features", tabKey: "interview" },
+              { label: "Proctoring", targetId: "features", tabKey: "proctoring" },
+              { label: "Coding Arena", targetId: "features", tabKey: "coding" },
+              { label: "1v1 Clash", targetId: "features", tabKey: "clash" },
+              { label: "How It Works", targetId: "how-it-works" },
+              { label: "FAQ", targetId: "faq" },
+            ].map(({ label, targetId, tabKey }) => (
               <a
                 key={label}
-                href={href}
+                href={`#${targetId}`}
+                onClick={(e) => handleNavClick(e, targetId, tabKey)}
                 style={{ color: "var(--text2)", fontSize: 14, fontWeight: 600, textDecoration: "none", transition: "color .2s" }}
                 onMouseEnter={(e) => (e.target.style.color = "var(--forge)")}
                 onMouseLeave={(e) => (e.target.style.color = "var(--text2)")}
