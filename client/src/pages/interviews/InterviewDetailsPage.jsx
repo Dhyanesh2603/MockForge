@@ -319,13 +319,17 @@ export default function InterviewDetailsPage() {
             {started && !submitted && (
               <button
                 type="button"
-                onClick={() => setShowPause(true)}
+                onClick={() => {
+                  setShowPause(false);
+                  navigate("/dashboard");
+                }}
                 className="btn-press"
                 style={{
                   padding: "5px 12px", borderRadius: 999, border: "1px solid var(--border)",
                   background: "var(--surface)", color: "var(--text2)", fontSize: 12, fontWeight: 600,
                   cursor: "pointer", display: "flex", alignItems: "center", gap: 4
                 }}
+                title="Pause and return to dashboard"
               >
                 ⏸️ Pause
               </button>
