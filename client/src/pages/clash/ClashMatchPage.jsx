@@ -21,6 +21,7 @@ export default function ClashMatchPage() {
   const [answers, setAnswers] = useState({});
   const [opponentIdx, setOpponentIdx] = useState(0);
   const [opponentSubmitted, setOpponentSubmitted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluatingMsg, setEvaluatingMsg] = useState("");
   const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540);
@@ -59,6 +60,12 @@ export default function ClashMatchPage() {
         if (res.data.room && res.data.room.proctored !== undefined) {
           setIsProctored(Boolean(res.data.room.proctored));
         }
+
+        // Check if user already submitted
+        const me = res.data.participants?.find((p) => String(p.user_id) === String(user.uid));
+        if (me?.status === "submitted") {
+          setIsSubmitted(true);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -79,7 +86,7 @@ export default function ClashMatchPage() {
     });
 
     socket.on("evaluating_match", (data) => {
-      setEvaluatingMsg(data.message || "Evaluating match results...");
+      setEvaluatingMsg(data.message || "Both candidates submitted! AI evaluating match parallely...");
     });
 
     socket.on("match_completed", (data) => {
@@ -132,9 +139,9 @@ export default function ClashMatchPage() {
   };
 
   const doAutoSubmit = useCallback(() => {
-    if (isSubmitting) return;
+    if (isSubmitting || isSubmitted) return;
     setIsSubmitting(true);
-    setEvaluatingMsg("Submitting match answers & evaluating...");
+    setIsSubmitted(true);
 
     const socket = getClashSocket();
     const formattedAnswers = questions.map((q) => ({
@@ -147,7 +154,7 @@ export default function ClashMatchPage() {
       userId: user?.uid,
       answers: formattedAnswers,
     });
-  }, [isSubmitting, questions, roomCode, user]);
+  }, [isSubmitting, isSubmitted, questions, roomCode, user]);
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
@@ -169,15 +176,60 @@ export default function ClashMatchPage() {
     );
   }
 
-  if (evaluatingMsg) {
+  {/* WAITING PAGE WHEN USER HAS SUBMITTED */}
+  if (isSubmitted || isSubmitting) {
     return (
-      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid #f43f5e", borderTopColor: "transparent", margin: "0 auto 16px" }} className="asp" />
-          <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 22, fontWeight: 700, color: "var(--text)", margin: "0 0 8px" }}>
-            ⚔️ Clash Finished!
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+        <div className="bg-grid" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />
+        <div className="glass glow-red-sm afu" style={{ borderRadius: 28, padding: 40, border: "1px solid var(--border)", textAlign: "center", maxWidth: 540, width: "100%", position: "relative", zIndex: 1 }}>
+          
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(244,63,94,0.12)", border: "1px solid rgba(244,63,94,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 26 }}>
+            {evaluatingMsg ? "🤖" : opponentSubmitted ? "⚔️" : "⏳"}
+          </div>
+
+          <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".15em" }}>
+            1v1 CLASH ARENA
+          </span>
+
+          <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 800, color: "var(--text)", margin: "8px 0 12px" }}>
+            {evaluatingMsg ? "AI Parallel Evaluation in Progress..." : opponentSubmitted ? "Both Candidates Submitted!" : "Waiting for Opponent to Finish..."}
           </h2>
-          <p style={{ color: "var(--text2)", fontSize: 14 }}>{evaluatingMsg}</p>
+
+          <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.6, margin: "0 0 28px" }}>
+            {evaluatingMsg || (opponentSubmitted ? "Evaluating both candidates parallely for technical accuracy and depth..." : "Your solutions have been recorded cleanly. You will automatically transition to results as soon as your opponent submits!")}
+          </p>
+
+          {/* Live Status Cards */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, textAlign: "left" }}>
+            {/* Candidate Status */}
+            <div style={{ padding: "14px 18px", borderRadius: 16, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 16 }}>👤</span>
+                <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700 }}>Your Status</span>
+              </div>
+              <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: "#10b981", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
+                ✓ SUBMITTED
+              </span>
+            </div>
+
+            {/* Opponent Status */}
+            <div style={{ padding: "14px 18px", borderRadius: 16, background: opponentSubmitted ? "rgba(16,185,129,0.08)" : "rgba(244,63,94,0.08)", border: opponentSubmitted ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(244,63,94,0.3)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 16 }}>⚔️</span>
+                <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700 }}>Opponent Status</span>
+              </div>
+              <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: opponentSubmitted ? "#10b981" : "#f43f5e", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
+                {opponentSubmitted ? "✓ SUBMITTED" : `ON Q${opponentIdx + 1}/${questions.length || 1}`}
+              </span>
+            </div>
+          </div>
+
+          {/* Loading Indicator */}
+          <div style={{ marginTop: 28, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "var(--text3)", fontSize: 12, fontFamily: "monospace" }}>
+            <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #f43f5e", borderTopColor: "transparent" }} className="asp" />
+            <span>{evaluatingMsg ? "Running parallel AI score analysis..." : "Syncing live opponent state..."}</span>
+          </div>
+
         </div>
       </div>
     );
