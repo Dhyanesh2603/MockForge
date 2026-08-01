@@ -298,15 +298,6 @@ export default function AdaptiveInterviewPage() {
 
             {/* AI Question & Voice Controls */}
             <div className="glass afu" style={{ borderRadius: 24, padding: 32, border: "1px solid var(--border)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text3)", fontFamily: "monospace" }}>
-                  QUESTION #{history.length + 1}
-                </span>
-                <span style={{ fontSize: 11, color: "var(--accent-cyan)", fontFamily: "monospace" }}>
-                  AI Adaptation: {adaptationReason}
-                </span>
-              </div>
-
               <h3 style={{ fontSize: 19, fontWeight: 700, color: "var(--text)", lineHeight: 1.5, margin: "0 0 20px" }}>
                 "{isLoadingNext ? "Adapting next question based on your response depth..." : currentQuestion}"
               </h3>
