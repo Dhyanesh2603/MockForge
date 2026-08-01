@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
+import ResumeParserSection from "../../components/interviews/ResumeParserSection";
 
 const ROLES = ["Frontend Developer","Backend Developer","Full Stack Developer","DevOps Engineer","Data Scientist","Machine Learning Engineer","iOS Developer","Android Developer","QA Engineer","Product Manager"];
 const STACKS = ["React, Node.js","Vue.js, Django","Angular, Spring Boot","Python, FastAPI","React Native","Flutter, Firebase","AWS, Docker, K8s","TensorFlow, PyTorch","Next.js, Prisma","Go, PostgreSQL"];
@@ -195,6 +196,16 @@ export default function CreateInterviewPage() {
             {/* ── STEP 1: Role & Stack ── */}
             {step === 1 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+                <ResumeParserSection
+                  onResumeParsed={(parsed) => {
+                    if (parsed.detectedRole) setRole(parsed.detectedRole);
+                    if (parsed.techStack) setTechStack(parsed.techStack);
+                    if (parsed.weaknesses && parsed.weaknesses.length > 0) {
+                      setFocusAreas((prev) => Array.from(new Set([...prev, ...parsed.weaknesses])));
+                    }
+                  }}
+                />
+
                 <div>
                   <Label>Target Role <span style={{ color: "var(--forge)" }}>*</span></Label>
                   <input

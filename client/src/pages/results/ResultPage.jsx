@@ -4,6 +4,8 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
 import ProctoringAuditCard from "../../components/proctoring/ProctoringAuditCard";
+import ProctoringTimelineBar from "../../components/proctoring/ProctoringTimelineBar";
+import { analyzeSpeech } from "../../utils/speechAnalytics";
 
 /* ── Score Ring ─────────────────────────────── */
 function ScoreRing({score,size=148}){
@@ -307,7 +309,67 @@ export default function ResultPage(){
                 <Sec icon="📍" title="Areas to Improve" content={result?.weaknesses} accent="red"/>
               </div>
               <Sec icon="🤖" title="AI Feedback" content={result?.feedback} accent="blue"/>
+              
+              {/* AI Speech & Confidence Analytics Card */}
+              {(() => {
+                const speechStats = analyzeSpeech(answerMap);
+                return (
+                  <div className="glass" style={{ borderRadius: 22, padding: 24, border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ fontSize: 20 }}>📊</span>
+                        <div>
+                          <h3 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--text)", margin: 0 }}>
+                            AI Speech & Delivery Analytics
+                          </h3>
+                          <p style={{ fontSize: 12, color: "var(--text3)", margin: 0 }}>
+                            Pacing, filler word density & confidence rating
+                          </p>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 999, background: "rgba(56,189,248,0.12)", color: "#38bdf8", border: "1px solid rgba(56,189,248,0.3)" }}>
+                        {speechStats.confidenceScore}% Executive Delivery
+                      </span>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
+                      <div style={{ padding: 12, borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", textAlign: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>Speech Pacing</span>
+                        <strong style={{ fontSize: 14, color: "var(--text)", fontFamily: "monospace" }}>{speechStats.wpm} WPM</strong>
+                        <span style={{ fontSize: 10, color: "var(--forge)", display: "block", marginTop: 2 }}>({speechStats.pacingRating})</span>
+                      </div>
+
+                      <div style={{ padding: 12, borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", textAlign: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>Filler Word Count</span>
+                        <strong style={{ fontSize: 14, color: speechStats.fillerCount > 5 ? "#fbbf24" : "#34d399", fontFamily: "monospace" }}>
+                          {speechStats.fillerCount} fillers
+                        </strong>
+                        <span style={{ fontSize: 10, color: "var(--text3)", display: "block", marginTop: 2 }}>("um", "like", "you know")</span>
+                      </div>
+
+                      <div style={{ padding: 12, borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", textAlign: "center" }}>
+                        <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>Clarity Index</span>
+                        <strong style={{ fontSize: 14, color: "#38bdf8", fontFamily: "monospace" }}>{speechStats.clarityScore}%</strong>
+                        <span style={{ fontSize: 10, color: "var(--text3)", display: "block", marginTop: 2 }}>(Vocabulary Structure)</span>
+                      </div>
+                    </div>
+
+                    {speechStats.recommendations.length > 0 && (
+                      <div style={{ padding: 12, borderRadius: 12, background: "rgba(var(--forge-rgb), 0.06)", border: "1px solid rgba(var(--forge-rgb), 0.2)" }}>
+                        <strong style={{ fontSize: 12, color: "var(--forge)", display: "block", marginBottom: 4 }}>💡 Delivery Recommendations:</strong>
+                        <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
+                          {speechStats.recommendations.map((rec, i) => (
+                            <li key={i}>{rec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <ProctoringAuditCard proctoringData={result?.proctoringData} />
+              <ProctoringTimelineBar incidents={result?.proctoringData?.incidents || []} />
             </div>
           )}
 

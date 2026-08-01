@@ -5,6 +5,7 @@ import { getClashSocket, connectClashSocket } from "../../services/clashSocket";
 import api from "../../services/api";
 import { useProctoring } from "../../hooks/useProctoring";
 import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
+import CodeCompilerSandbox from "../../components/compiler/CodeCompilerSandbox";
 
 export default function ClashMatchPage() {
   const { roomCode } = useParams();
@@ -23,6 +24,7 @@ export default function ClashMatchPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [evaluatingMsg, setEvaluatingMsg] = useState("");
   const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540); // 9 mins default
+  const [responseMode, setResponseMode] = useState("text"); // "text" | "code"
 
   const answersRef = useRef(answers);
   answersRef.current = answers;
@@ -198,23 +200,59 @@ export default function ClashMatchPage() {
                 {currentQ.question_text}
               </h3>
 
-              {/* Response Textarea */}
-              <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 8 }}>
-                  Your Technical Answer
-                </label>
-                <textarea
-                  rows={7}
-                  value={answers[currentQ.id] || ""}
-                  onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                  placeholder="Write your explanation here..."
+              {/* Response Mode Selector */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                <button
+                  type="button"
+                  onClick={() => setResponseMode("text")}
                   style={{
-                    width: "100%", padding: "14px 16px", borderRadius: 16,
-                    background: "var(--bg2)", border: "1px solid var(--border)",
-                    color: "var(--text)", fontSize: 14, lineHeight: 1.6, resize: "vertical"
+                    padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    border: responseMode === "text" ? "none" : "1px solid var(--border)",
+                    background: responseMode === "text" ? "#f43f5e" : "var(--surface)",
+                    color: responseMode === "text" ? "#fff" : "var(--text2)",
                   }}
-                />
+                >
+                  📝 Text Explanation
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setResponseMode("code")}
+                  style={{
+                    padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    border: responseMode === "code" ? "none" : "1px solid var(--border)",
+                    background: responseMode === "code" ? "linear-gradient(135deg,#0ba5ec,#065986)" : "var(--surface)",
+                    color: responseMode === "code" ? "#fff" : "var(--text2)",
+                  }}
+                >
+                  💻 1v1 Live Code Sandbox
+                </button>
               </div>
+
+              {/* Response Textarea or Code Compiler */}
+              {responseMode === "text" ? (
+                <div>
+                  <textarea
+                    rows={7}
+                    value={answers[currentQ.id] || ""}
+                    onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+                    placeholder="Write your explanation here..."
+                    style={{
+                      width: "100%", padding: "14px 16px", borderRadius: 16,
+                      background: "var(--bg2)", border: "1px solid var(--border)",
+                      color: "var(--text)", fontSize: 14, lineHeight: 1.6, resize: "vertical"
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{ height: 380, marginBottom: 10 }}>
+                  <CodeCompilerSandbox
+                    initialLanguage="javascript"
+                    defaultCode={answers[currentQ.id] || ""}
+                    onCodeChange={(newCode) => handleAnswerChange(currentQ.id, newCode)}
+                    onSubmitSolution={(newCode) => handleAnswerChange(currentQ.id, newCode)}
+                  />
+                </div>
+              )}
             </div>
           )}
 
