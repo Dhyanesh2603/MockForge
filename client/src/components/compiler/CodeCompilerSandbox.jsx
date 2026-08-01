@@ -136,39 +136,35 @@ export default function CodeCompilerSandbox({
           borderBottom: "1px solid var(--border)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 14 }}>💻</span>
           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
             Code Editor Frame
           </span>
-
-          {/* Language Selector */}
-          <select
-            value={language}
-            onChange={(e) => handleLanguageChange(e.target.value)}
-            style={{
-              padding: "4px 10px",
-              borderRadius: 8,
-              background: "#1e293b",
-              border: "1px solid var(--border)",
-              color: "var(--accent-cyan)",
-              fontSize: 12,
-              fontWeight: 700,
-              fontFamily: "monospace",
-              outline: "none",
-              cursor: "pointer",
-            }}
-          >
-            <option value="javascript">JavaScript (ES6)</option>
-            <option value="python">Python 3.11</option>
-            <option value="cpp">C++ 20 (GCC)</option>
-            <option value="java">Java 21 (OpenJDK)</option>
-          </select>
         </div>
 
-        <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text3)" }}>
-          Auto-scroll Enabled
-        </span>
+        {/* Right-most Compiler Language Selector */}
+        <select
+          value={language}
+          onChange={(e) => handleLanguageChange(e.target.value)}
+          style={{
+            padding: "5px 12px",
+            borderRadius: 8,
+            background: "#1e293b",
+            border: "1px solid var(--border)",
+            color: "var(--accent-cyan)",
+            fontSize: 12,
+            fontWeight: 700,
+            fontFamily: "monospace",
+            outline: "none",
+            cursor: "pointer",
+          }}
+        >
+          <option value="javascript">JavaScript (ES6)</option>
+          <option value="python">Python 3.11</option>
+          <option value="cpp">C++ 20 (GCC)</option>
+          <option value="java">Java 21 (OpenJDK)</option>
+        </select>
       </div>
 
       {/* Code Input Textarea (Auto-scrolls as user types to bottom) */}
