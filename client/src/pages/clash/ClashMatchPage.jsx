@@ -23,6 +23,7 @@ export default function ClashMatchPage() {
   const [opponentSubmitted, setOpponentSubmitted] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAbortModal, setShowAbortModal] = useState(false);
   const [evaluatingMsg, setEvaluatingMsg] = useState("");
   const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540);
   const [responseMode, setResponseMode] = useState("text");
@@ -142,6 +143,7 @@ export default function ClashMatchPage() {
     if (isSubmitting || isSubmitted) return;
     setIsSubmitting(true);
     setIsSubmitted(true);
+    setShowAbortModal(false);
 
     const socket = getClashSocket();
     const formattedAnswers = questions.map((q) => ({
@@ -224,10 +226,27 @@ export default function ClashMatchPage() {
             </div>
           </div>
 
-          {/* Loading Indicator */}
-          <div style={{ marginTop: 28, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, color: "var(--text3)", fontSize: 12, fontFamily: "monospace" }}>
-            <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #f43f5e", borderTopColor: "transparent" }} className="asp" />
-            <span>{evaluatingMsg ? "Running parallel AI score analysis..." : "Syncing live opponent state..."}</span>
+          {/* Loading Indicator / Exit Action */}
+          <div style={{ marginTop: 28, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--text3)", fontSize: 12, fontFamily: "monospace" }}>
+              <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #f43f5e", borderTopColor: "transparent" }} className="asp" />
+              <span>{evaluatingMsg ? "Running parallel AI score analysis..." : "Syncing live opponent state..."}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => navigate("/clash")}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--text3)",
+                fontSize: 12,
+                cursor: "pointer",
+                textDecoration: "underline",
+              }}
+            >
+              Exit to Clash Lobby
+            </button>
           </div>
 
         </div>
@@ -242,8 +261,47 @@ export default function ClashMatchPage() {
         {/* Proctoring Overlay */}
         {isProctored && <ProctoringOverlay proctoring={proctoring} />}
 
+        {/* Abort / End Challenge Confirmation Modal */}
+        {showAbortModal && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <div className="glass glow-red-sm afu" style={{ borderRadius: 24, padding: 32, maxWidth: 440, width: "100%", border: "1px solid var(--border)", textAlign: "center" }}>
+              <span style={{ fontSize: 36, display: "block", marginBottom: 12 }}>🛑</span>
+              <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: "0 0 10px" }}>
+                Abort 1v1 Clash Challenge?
+              </h3>
+              <p style={{ color: "var(--text2)", fontSize: 14, lineHeight: 1.5, margin: "0 0 24px" }}>
+                Are you sure you want to end this challenge early? Your current answers will be submitted immediately for parallel AI evaluation.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={doAutoSubmit}
+                  className="btn-press glow-red-sm"
+                  style={{
+                    padding: "12px", borderRadius: 14, border: "none",
+                    background: "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff",
+                    fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
+                  }}
+                >
+                  Submit & End Challenge ⚔️
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAbortModal(false)}
+                  style={{
+                    padding: "10px", borderRadius: 14, border: "1px solid var(--border)",
+                    background: "var(--surface)", color: "var(--text2)", fontSize: 13, fontWeight: 600, cursor: "pointer"
+                  }}
+                >
+                  Continue Interview
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <main style={{ maxWidth: 960, margin: "0 auto", padding: "28px 24px 80px" }}>
-          {/* Top Bar: Progress & Match Timer */}
+          {/* Top Bar: Progress, Timer, and Abort Button */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
             <div>
               <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700 }}>
@@ -254,12 +312,35 @@ export default function ClashMatchPage() {
               </h2>
             </div>
 
-            {/* Timer */}
-            <div style={{ padding: "8px 16px", borderRadius: 14, background: timeLeft < 60 ? "rgba(248,113,113,0.15)" : "var(--bg2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}>⏳</span>
-              <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 18, color: timeLeft < 60 ? "#f87171" : "var(--text)" }}>
-                {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
-              </span>
+            {/* Timer & Abort Control Bar */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ padding: "8px 16px", borderRadius: 14, background: timeLeft < 60 ? "rgba(248,113,113,0.15)" : "var(--bg2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 14 }}>⏳</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 18, color: timeLeft < 60 ? "#f87171" : "var(--text)" }}>
+                  {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAbortModal(true)}
+                className="btn-press"
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: 14,
+                  background: "rgba(239, 68, 68, 0.12)",
+                  border: "1px solid rgba(239, 68, 68, 0.35)",
+                  color: "#f87171",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                🛑 End Challenge
+              </button>
             </div>
           </div>
 
