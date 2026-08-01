@@ -330,6 +330,7 @@ CRITICAL RULES:
           { input: "nums = [4, 5, 6]", expected: "15" },
           { input: "nums = [10, 20]", expected: "30" }
         ]
+      }
     ];
   }
 };
