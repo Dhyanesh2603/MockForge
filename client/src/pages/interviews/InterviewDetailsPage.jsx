@@ -190,20 +190,8 @@ export default function InterviewDetailsPage() {
   };
 
   const [deviceCheckDone, setDeviceCheckDone] = useState(false);
-  const isProctored = interview?.proctored !== false;
+  const isProctored = interview ? Boolean(interview.proctored) : false;
   const proctoring = useProctoring(isProctored && started && !submitted);
-
-  if(!started) {
-    if (isProctored && !deviceCheckDone) {
-      return (
-        <DeviceCheckModal
-          onReady={() => setDeviceCheckDone(true)}
-          onCancel={() => navigate("/dashboard")}
-        />
-      );
-    }
-    return <Countdown role={interview?.role} onDone={() => setStarted(true)} />;
-  }
 
   const doSubmit=useCallback(async()=>{
     if(submitting||submitted) return;
@@ -241,8 +229,14 @@ export default function InterviewDetailsPage() {
     finally{setSubmitting(false);}
   },[user,id,submitting,submitted,navigate,answers,proctoring.integrityScore,proctoring.incidents]);
 
-  const toggleFlag=()=>setFlagged(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
-  const toggleReview=()=>setReviewLater(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
+  const toggleFlag=()=>{
+    if(!cur) return;
+    setFlagged(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
+  };
+  const toggleReview=()=>{
+    if(!cur) return;
+    setReviewLater(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
+  };
 
   const fmt=s=>`${Math.floor(s/60)}:${(s%60).toString().padStart(2,"0")}`;
   const pct=questions.length>0?((idx+1)/questions.length)*100:0;
@@ -252,10 +246,33 @@ export default function InterviewDetailsPage() {
     <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{textAlign:"center"}}>
         <div style={{width:40,height:40,borderRadius:"50%",border:"2px solid var(--forge)",borderTopColor:"transparent",margin:"0 auto 12px"}} className="asp"/>
-        <p style={{color:"var(--text2)",fontSize:14}}>Loading…</p>
+        <p style={{color:"var(--text2)",fontSize:14}}>Loading session…</p>
       </div>
     </div>
   );
+
+  if (!interview || !questions || questions.length === 0) return (
+    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center",padding:24}}>
+        <p style={{color:"#f87171",fontSize:16,fontWeight:600,marginBottom:12}}>Interview session not found or has no questions.</p>
+        <button onClick={() => navigate("/dashboard")} className="btn-press" style={{padding:"8px 18px",borderRadius:12,background:"var(--surface)",border:"1px solid var(--border)",color:"var(--text)",fontSize:14,fontWeight:600,cursor:"pointer"}}>
+          ← Return to Dashboard
+        </button>
+      </div>
+    </div>
+  );
+
+  if(!started) {
+    if (isProctored && !deviceCheckDone) {
+      return (
+        <DeviceCheckModal
+          onReady={() => setDeviceCheckDone(true)}
+          onCancel={() => navigate("/dashboard")}
+        />
+      );
+    }
+    return <Countdown role={interview?.role} onDone={() => setStarted(true)} />;
+  }
 
   const timerC=timeLeft<300?"#f87171":timeLeft<600?"#fbbf24":"var(--forge)";
   const timerBg=timeLeft<300?"rgba(248,113,113,.1)":timeLeft<600?"rgba(251,191,36,.1)":"rgba(var(--forge-rgb),.07)";
@@ -484,7 +501,7 @@ export default function InterviewDetailsPage() {
       </main>
 
       {/* Proctoring Overlay */}
-      {started && !submitted && (
+      {isProctored && started && !submitted && (
         <ProctoringOverlay
           videoRef={proctoring.videoRef}
           cameraActive={proctoring.cameraActive}
