@@ -37,14 +37,24 @@ export default function NavBar({ showLogout = true, rightSlot = null }) {
         {/* Right actions */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
           {user && (
-            <Link to="/clash" className="btn-press"
-              style={{
-                display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:10,
-                border:"1px solid rgba(244,63,94,0.3)",background:"rgba(244,63,94,0.08)",
-                color:"#f43f5e",fontSize:13,fontWeight:700,textDecoration:"none"
-              }}>
-              ⚔️ 1v1 Clash
-            </Link>
+            <>
+              <Link to="/coding/new" className="btn-press"
+                style={{
+                  display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:10,
+                  border:"1px solid rgba(11,165,236,0.3)",background:"rgba(11,165,236,0.08)",
+                  color:"var(--forge)",fontSize:13,fontWeight:700,textDecoration:"none"
+                }}>
+                💻 Coding Arena
+              </Link>
+              <Link to="/clash" className="btn-press"
+                style={{
+                  display:"flex",alignItems:"center",gap:6,padding:"6px 14px",borderRadius:10,
+                  border:"1px solid rgba(244,63,94,0.3)",background:"rgba(244,63,94,0.08)",
+                  color:"#f43f5e",fontSize:13,fontWeight:700,textDecoration:"none"
+                }}>
+                ⚔️ 1v1 Clash
+              </Link>
+            </>
           )}
           {/* Theme toggle */}
           <button

@@ -12,6 +12,9 @@ import ClashWaitingRoomPage from "../pages/clash/ClashWaitingRoomPage";
 import ClashMatchPage from "../pages/clash/ClashMatchPage";
 import ClashResultPage from "../pages/clash/ClashResultPage";
 
+import CreateCodingRoundPage from "../pages/coding/CreateCodingRoundPage";
+import CodingArenaPage from "../pages/coding/CodingArenaPage";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -31,6 +34,9 @@ function AppRoutes() {
         <Route path="/clash/room/:roomCode" element={<ProtectedRoute><ClashWaitingRoomPage /></ProtectedRoute>} />
         <Route path="/clash/match/:roomCode" element={<ProtectedRoute><ClashMatchPage /></ProtectedRoute>} />
         <Route path="/clash/results/:roomCode" element={<ProtectedRoute><ClashResultPage /></ProtectedRoute>} />
+        {/* Dedicated Coding Round Routes (Protected) */}
+        <Route path="/coding/new" element={<ProtectedRoute><CreateCodingRoundPage /></ProtectedRoute>} />
+        <Route path="/coding/:id" element={<ProtectedRoute><CodingArenaPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

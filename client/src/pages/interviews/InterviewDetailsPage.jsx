@@ -7,7 +7,6 @@ import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
 import ProctoringPauseOverlay from "../../components/proctoring/ProctoringPauseOverlay";
 import DeviceCheckModal from "../../components/proctoring/DeviceCheckModal";
 import VoiceInterviewerControls from "../../components/voice/VoiceInterviewerControls";
-import CodeCompilerSandbox from "../../components/compiler/CodeCompilerSandbox";
 
 /* ── icons ── */
 const Svg = (d,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
@@ -118,7 +117,6 @@ export default function InterviewDetailsPage() {
   const [submitted,setSubmitted]=useState(false);
   const [showConfirm,setShowConfirm]=useState(false);
   const [showPause,setShowPause]=useState(false);
-  const [activeTab, setActiveTab] = useState("text"); // "text" | "code"
   const [saveStatus,setSaveStatus]=useState("idle"); // idle | saving | saved
   const [timeLeft,setTimeLeft]=useState(()=>{
     const s=localStorage.getItem(`mf-timer-${id}`); return s?Number(s):30*60;
@@ -329,7 +327,15 @@ export default function InterviewDetailsPage() {
           <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
             {saveStatus==="saving"&&<span style={{fontSize:11,color:"var(--text3)"}}>Saving…</span>}
             {saveStatus==="saved"&&<span style={{fontSize:11,color:"var(--green)",display:"flex",alignItems:"center",gap:3}}><ChkI/>Saved</span>}
-            <span style={{fontSize:12,color:"var(--text3)"}}>{answeredCount}/{questions.length} done</span>
+            {(() => {
+              const maxScorePerQ = questions.length > 0 ? 100 / questions.length : 10;
+              const currentScore = Math.round(answeredCount * maxScorePerQ);
+              return (
+                <span style={{fontSize:12,fontWeight:700,color:"var(--forge)",fontFamily:"monospace",background:"rgba(var(--forge-rgb),.1)",padding:"4px 10px",borderRadius:999,border:"1px solid rgba(var(--forge-rgb),.25)"}}>
+                  Score: {currentScore}/100 pts
+                </span>
+              );
+            })()}
             
             {started && !submitted && (
               <button
@@ -410,59 +416,20 @@ export default function InterviewDetailsPage() {
               currentAnswer={answers[cur?.id] || ""}
             />
 
-            {/* Response Mode Selector (Text vs Live Code Compiler) */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-              <button
-                type="button"
-                onClick={() => setActiveTab("text")}
-                style={{
-                  padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  border: activeTab === "text" ? "none" : "1px solid var(--border)",
-                  background: activeTab === "text" ? "var(--forge)" : "var(--surface)",
-                  color: activeTab === "text" ? "#fff" : "var(--text2)",
-                }}
-              >
-                📝 Text Response
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("code")}
-                style={{
-                  padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                  border: activeTab === "code" ? "none" : "1px solid var(--border)",
-                  background: activeTab === "code" ? "linear-gradient(135deg,#0ba5ec,#065986)" : "var(--surface)",
-                  color: activeTab === "code" ? "#fff" : "var(--text2)",
-                }}
-              >
-                💻 Code Compiler Sandbox
-              </button>
-            </div>
-
-            {/* Textarea or Code Compiler */}
-            {activeTab === "text" ? (
-              <textarea
-                ref={textareaRef}
-                rows={8}
-                placeholder="Type your answer here… Be structured and specific. Use real examples where possible."
-                value={answers[cur?.id]||""}
-                disabled={submitted}
-                onChange={e=>handleChange(e.target.value)}
-                style={{width:"100%",boxSizing:"border-box",borderRadius:14,border:"1px solid var(--border)",
-                        background:"var(--bg2)",color:"var(--text)",padding:16,fontSize:14,lineHeight:1.7,
-                        resize:"none",fontFamily:"inherit",opacity:submitted?.5:1,cursor:submitted?"not-allowed":"text"}}
-                onFocus={e=>e.target.style.borderColor="rgba(var(--forge-rgb),.45)"}
-                onBlur={e=>e.target.style.borderColor="var(--border)"}
-              />
-            ) : (
-              <div style={{ height: 380, marginBottom: 10 }}>
-                <CodeCompilerSandbox
-                  initialLanguage="javascript"
-                  defaultCode={answers[cur?.id] || ""}
-                  onCodeChange={(newCode) => handleChange(newCode)}
-                  onSubmitSolution={(newCode) => handleChange(newCode)}
-                />
-              </div>
-            )}
+            {/* textarea */}
+            <textarea
+              ref={textareaRef}
+              rows={8}
+              placeholder="Type your answer here… Be structured and specific. Use real examples where possible."
+              value={answers[cur?.id]||""}
+              disabled={submitted}
+              onChange={e=>handleChange(e.target.value)}
+              style={{width:"100%",boxSizing:"border-box",borderRadius:14,border:"1px solid var(--border)",
+                      background:"var(--bg2)",color:"var(--text)",padding:16,fontSize:14,lineHeight:1.7,
+                      resize:"none",fontFamily:"inherit",opacity:submitted?.5:1,cursor:submitted?"not-allowed":"text"}}
+              onFocus={e=>e.target.style.borderColor="rgba(var(--forge-rgb),.45)"}
+              onBlur={e=>e.target.style.borderColor="var(--border)"}
+            />
 
             {/* toolbar below textarea */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:10,flexWrap:"wrap",gap:8}}>
