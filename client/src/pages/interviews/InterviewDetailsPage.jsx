@@ -45,6 +45,32 @@ function Countdown({ role, onDone }) {
   );
 }
 
+/* ── Pause modal ── */
+function PauseModal({ onConfirm, onCancel }) {
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:150,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(8px)"}} onClick={onCancel}/>
+      <div className="glass afu" style={{position:"relative",borderRadius:22,padding:32,maxWidth:400,width:"100%",boxShadow:"0 24px 80px rgba(0,0,0,.5)",border:"1px solid var(--border)",textAlign:"center"}}>
+        <div style={{fontSize:42,marginBottom:14}}>⏸️</div>
+        <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:20,color:"var(--text)",margin:"0 0 10px"}}>
+          Pause Interview Session?
+        </h3>
+        <p style={{color:"var(--text2)",fontSize:14,lineHeight:1.6,marginBottom:24}}>
+          Are you sure you want to pause this test? Your answers and remaining time will be saved, and you can resume anytime from your dashboard.
+        </p>
+        <div style={{display:"flex",gap:12}}>
+          <button onClick={onCancel} className="btn-press" style={{flex:1,padding:"12px 14px",borderRadius:12,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text)",fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            Continue Test
+          </button>
+          <button onClick={onConfirm} className="bg-forge-gradient btn-press" style={{flex:1,padding:"12px 14px",borderRadius:12,border:"none",color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            Pause & Exit
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Confirm modal ── */
 function ConfirmModal({ flagCount, onConfirm, onCancel }) {
   return(
@@ -88,6 +114,7 @@ export default function InterviewDetailsPage() {
   const [submitting,setSubmitting]=useState(false);
   const [submitted,setSubmitted]=useState(false);
   const [showConfirm,setShowConfirm]=useState(false);
+  const [showPause,setShowPause]=useState(false);
   const [saveStatus,setSaveStatus]=useState("idle"); // idle | saving | saved
   const [timeLeft,setTimeLeft]=useState(()=>{
     const s=localStorage.getItem(`mf-timer-${id}`); return s?Number(s):30*60;
@@ -108,9 +135,17 @@ export default function InterviewDetailsPage() {
         const map={};
         (ar.data.answers||[]).forEach(a=>{map[a.question_id]=a.answer_text;});
         setAnswers(map);
-      }catch(e){console.error(e);}finally{setLoading(false);}
+      }catch(e){
+        console.error(e);
+        if (e?.response?.status === 401 || e?.response?.status === 403) {
+          if (typeof document !== "undefined" && document.body) document.body.style.display = "none";
+          window.location.href = "/";
+        } else {
+          navigate("/dashboard");
+        }
+      }finally{setLoading(false);}
     })();
-  },[id,user]);
+  },[id,user,navigate]);
 
   /* timer */
   useEffect(()=>{
@@ -229,7 +264,8 @@ export default function InterviewDetailsPage() {
 
   return(
     <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",flexDirection:"column"}}>
-      {showConfirm&&<ConfirmModal flagCount={flagged.size} onConfirm={()=>{setShowConfirm(false);doSubmit();}} onCancel={()=>setShowConfirm(false)}/>}
+      {showPause && <PauseModal onConfirm={() => { setShowPause(false); navigate("/dashboard"); }} onCancel={() => setShowPause(false)} />}
+      {showConfirm && <ConfirmModal flagCount={flagged.size} onConfirm={() => { setShowConfirm(false); doSubmit(); }} onCancel={() => setShowConfirm(false)} />}
 
       {/* top progress bar */}
       <div style={{position:"fixed",top:0,left:0,right:0,height:3,background:"var(--border)",zIndex:60}}>
@@ -240,7 +276,17 @@ export default function InterviewDetailsPage() {
       <header style={{position:"sticky",top:3,zIndex:50,background:"var(--surface)",backdropFilter:"blur(16px)",WebkitBackdropFilter:"blur(16px)",borderBottom:"1px solid var(--border)"}}>
         <div style={{maxWidth:960,margin:"0 auto",padding:"0 20px",height:58,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
           <div style={{display:"flex",alignItems:"center",gap:10,minWidth:0}}>
-            <button onClick={()=>navigate("/dashboard")} style={{width:32,height:32,borderRadius:9,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <button
+              onClick={() => {
+                if (started && !submitted) {
+                  setShowPause(true);
+                } else {
+                  navigate("/dashboard");
+                }
+              }}
+              style={{width:32,height:32,borderRadius:9,border:"1px solid var(--border)",background:"var(--surface)",color:"var(--text2)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}
+              title="Back to Dashboard"
+            >
               <ArrL/>
             </button>
             <div style={{minWidth:0}}>
@@ -252,6 +298,22 @@ export default function InterviewDetailsPage() {
             {saveStatus==="saving"&&<span style={{fontSize:11,color:"var(--text3)"}}>Saving…</span>}
             {saveStatus==="saved"&&<span style={{fontSize:11,color:"var(--green)",display:"flex",alignItems:"center",gap:3}}><ChkI/>Saved</span>}
             <span style={{fontSize:12,color:"var(--text3)"}}>{answeredCount}/{questions.length} done</span>
+            
+            {started && !submitted && (
+              <button
+                type="button"
+                onClick={() => setShowPause(true)}
+                className="btn-press"
+                style={{
+                  padding: "5px 12px", borderRadius: 999, border: "1px solid var(--border)",
+                  background: "var(--surface)", color: "var(--text2)", fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4
+                }}
+              >
+                ⏸️ Pause
+              </button>
+            )}
+
             <div style={{fontFamily:"monospace",fontWeight:700,fontSize:13,padding:"5px 12px",borderRadius:999,
                          background:timerBg,color:timerC,border:`1px solid ${timerC}35`}}
                  className={timeLeft<300?"aps":""}>

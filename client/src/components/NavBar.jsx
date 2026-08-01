@@ -25,7 +25,7 @@ export default function NavBar({ showLogout = true, rightSlot = null }) {
                    display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
 
         {/* Logo */}
-        <Link to="/" style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none",flexShrink:0}}>
+        <Link to={user ? "/dashboard" : "/"} style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none",flexShrink:0}}>
           <div className="bg-forge-gradient" style={{width:30,height:30,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center"}}>
             <span style={{color:"#fff",fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:13}}>M</span>
           </div>

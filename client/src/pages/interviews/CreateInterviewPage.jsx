@@ -155,7 +155,20 @@ export default function CreateInterviewPage() {
       <div style={{ position: "relative", zIndex: 1 }}>
         <NavBar showLogout={false} />
 
-        <main style={{ maxWidth: 620, margin: "0 auto", padding: "40px 24px 80px" }}>
+        <main style={{ maxWidth: 620, margin: "0 auto", padding: "30px 24px 80px" }}>
+          {/* Top back to dashboard link */}
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="btn-press"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px",
+              borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)",
+              color: "var(--text2)", fontSize: 13, fontWeight: 600, cursor: "pointer", marginBottom: 20
+            }}
+          >
+            ← Back to Dashboard
+          </button>
+
           {/* Title */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <span style={{ fontFamily: "monospace", fontSize: 11, color: "var(--forge)", textTransform: "uppercase", letterSpacing: ".1em" }}>New Session</span>
@@ -411,15 +424,13 @@ export default function CreateInterviewPage() {
 
           {/* Navigation — all type="button", no form */}
           <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
-            {step > 1 && (
-              <button
-                type="button"
-                onClick={goBack}
-                style={{ padding: "12px 24px", borderRadius: 14, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text2)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
-              >
-                ← Back
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => (step === 1 ? navigate("/dashboard") : goBack())}
+              style={{ padding: "12px 24px", borderRadius: 14, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text2)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+            >
+              ← Back
+            </button>
 
             {step < 3 ? (
               <button

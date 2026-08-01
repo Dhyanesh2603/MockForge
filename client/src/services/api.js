@@ -19,6 +19,9 @@ api.interceptors.response.use(
       // Only redirect if we're not already on the homepage or login page
       const path = window.location.pathname;
       if (path !== "/" && path !== "/login") {
+        if (typeof document !== "undefined" && document.body) {
+          document.body.style.display = "none";
+        }
         window.location.href = "/";
       }
     }
