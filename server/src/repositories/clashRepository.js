@@ -97,7 +97,16 @@ export const createClashRoomInDb = async ({
 export const saveClashQuestions = async (roomCode, questions) => {
   const inserted = [];
   for (let i = 0; i < questions.length; i++) {
-    const qText = typeof questions[i] === "string" ? questions[i] : questions[i].question_text;
+    const q = questions[i];
+    let qText = "";
+    if (typeof q === "string") {
+      qText = q;
+    } else if (typeof q === "object" && q !== null) {
+      qText = JSON.stringify(q);
+    } else {
+      qText = String(q || `Question ${i + 1}`);
+    }
+
     const res = await pool.query(
       `INSERT INTO clash_questions (room_code, question_text, order_index)
        VALUES ($1, $2, $3) RETURNING *`,
@@ -118,7 +127,15 @@ export const getClashQuestions = async (roomCode) => {
     `SELECT * FROM clash_questions WHERE room_code = $1 ORDER BY order_index ASC`,
     [roomCode]
   );
-  return res.rows;
+  return res.rows.map((row) => {
+    try {
+      if (typeof row.question_text === "string" && (row.question_text.startsWith("{") || row.question_text.startsWith("["))) {
+        const parsed = JSON.parse(row.question_text);
+        return { ...parsed, db_id: row.id };
+      }
+    } catch (e) {}
+    return row;
+  });
 };
 
 export const addOrUpdateParticipant = async ({

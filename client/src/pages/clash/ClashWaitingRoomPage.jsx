@@ -17,6 +17,7 @@ export default function ClashWaitingRoomPage() {
   const [copied, setCopied] = useState(false);
   const [countdown, setCountdown] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   useEffect(() => {
     if (!user || !roomCode) return;
@@ -120,7 +121,7 @@ export default function ClashWaitingRoomPage() {
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <div className="bg-grid" style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />
       <div style={{ position: "relative", zIndex: 1 }}>
-        <NavBar showLogout={false} />
+        <NavBar showLogout={false} onLogoClick={() => setShowExitModal(true)} />
 
         <main style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>
           {/* Room Banner */}
@@ -145,6 +146,26 @@ export default function ClashWaitingRoomPage() {
                 style={{ padding: "4px 10px", borderRadius: 8, border: "none", background: "var(--surface)", color: "var(--text2)", fontSize: 12, cursor: "pointer" }}
               >
                 {copied ? "Copied! ✓" : "Copy Code 📋"}
+              </button>
+            </div>
+
+            {/* Exit Room Top Action */}
+            <div style={{ marginTop: 16 }}>
+              <button
+                onClick={() => setShowExitModal(true)}
+                className="btn-press"
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 10,
+                  background: "rgba(239, 68, 68, 0.12)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  color: "#f87171",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Exit Room
               </button>
             </div>
           </div>
@@ -211,6 +232,104 @@ export default function ClashWaitingRoomPage() {
             </button>
           </div>
         </main>
+
+        {/* ── EXIT ROOM CONFIRMATION MODAL ── */}
+        {showExitModal && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 9999,
+              background: "rgba(0,0,0,0.65)",
+              backdropFilter: "blur(8px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <div
+              className="glass afu"
+              style={{
+                width: "100%",
+                maxWidth: 420,
+                borderRadius: 24,
+                padding: 28,
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  background: "rgba(239,68,68,0.12)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  color: "var(--red)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </div>
+
+              <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+                Exit 1v1 Room?
+              </h3>
+              <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text2)", lineHeight: 1.6 }}>
+                Are you sure you want to leave this room?
+              </p>
+
+              <div style={{ display: "flex", gap: 12 }}>
+                <button
+                  onClick={() => setShowExitModal(false)}
+                  className="btn-press"
+                  style={{
+                    flex: 1,
+                    padding: "11px 18px",
+                    borderRadius: 12,
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={() => navigate("/clash")}
+                  className="btn-press"
+                  style={{
+                    flex: 1,
+                    padding: "11px 18px",
+                    borderRadius: 12,
+                    background: "var(--red)",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 4px 16px rgba(239,68,68,0.35)",
+                  }}
+                >
+                  Exit Room
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

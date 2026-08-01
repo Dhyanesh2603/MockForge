@@ -17,6 +17,7 @@ export default function ClashMatchPage() {
   const proctoring = useProctoring(isProctored);
 
   const [rawQuestions, setRawQuestions] = useState(location.state?.questions || []);
+  const [matchType, setMatchType] = useState(location.state?.matchType || "coding");
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({});
   const [opponentIdx, setOpponentIdx] = useState(0);
@@ -26,20 +27,38 @@ export default function ClashMatchPage() {
   const [showAbortModal, setShowAbortModal] = useState(false);
   const [evaluatingMsg, setEvaluatingMsg] = useState("");
   const [timeLeft, setTimeLeft] = useState(location.state?.durationSeconds || 540);
-  const [responseMode, setResponseMode] = useState("text");
+  const [responseMode, setResponseMode] = useState("code");
   const [loading, setLoading] = useState(!location.state?.questions?.length);
+  const [testResults, setTestResults] = useState({});
+  const [isEvaluatingCode, setIsEvaluatingCode] = useState(false);
+  const [leftWidthPct, setLeftWidthPct] = useState(44);
+  const [isDragging, setIsDragging] = useState(false);
 
   const answersRef = useRef(answers);
   answersRef.current = answers;
 
-  // Normalize questions array to handle string arrays or object structures safely
+  // Normalize questions array safely for both text interview & coding challenges
   const questions = (rawQuestions || []).map((q, idx) => {
     if (typeof q === "string") {
-      return { id: String(idx + 1), question_text: q };
+      try {
+        if (q.startsWith("{") && q.endsWith("}")) {
+          const parsed = JSON.parse(q);
+          return { id: String(parsed.id || idx + 1), ...parsed };
+        }
+      } catch (e) {}
+      return { id: String(idx + 1), title: `Problem #${idx + 1}`, question_text: q, description: q };
     }
     return {
       id: String(q.id || q.questionId || idx + 1),
-      question_text: q.question_text || q.questionText || q.text || (typeof q === "object" ? JSON.stringify(q) : `Question ${idx + 1}`),
+      title: q.title || `Problem #${idx + 1}`,
+      question_text: q.question_text || q.description || q.title || `Question ${idx + 1}`,
+      description: q.description || q.question_text || "",
+      inputFormat: q.inputFormat || "Standard input arguments.",
+      outputFormat: q.outputFormat || "Return value.",
+      sampleTestCases: q.sampleTestCases || [
+        { input: "nums = [1, 2, 3]", expected: "6" }
+      ],
+      hiddenTestCases: q.hiddenTestCases || [],
     };
   });
 
@@ -58,8 +77,13 @@ export default function ClashMatchPage() {
         if (res.data.questions?.length) {
           setRawQuestions(res.data.questions);
         }
-        if (res.data.room && res.data.room.proctored !== undefined) {
-          setIsProctored(Boolean(res.data.room.proctored));
+        if (res.data.room) {
+          if (res.data.room.proctored !== undefined) {
+            setIsProctored(Boolean(res.data.room.proctored));
+          }
+          if (res.data.room.match_type) {
+            setMatchType(res.data.room.match_type);
+          }
         }
 
         // Check if user already submitted
@@ -299,104 +323,178 @@ export default function ClashMatchPage() {
             </div>
           </div>
         )}
+        {/* Dedicated 1v1 Code Battle Arena Layout when matchType === "coding" */}
+        {matchType === "coding" ? (
+          <div style={{ display: "flex", flex: 1, height: "calc(100vh - 61px)", overflow: "hidden" }}>
+            {/* Left Panel: Problem Statement, Test Cases, and Run Results */}
+            <div
+              style={{
+                width: `${leftWidthPct}%`,
+                height: "100%",
+                overflowY: "auto",
+                borderRight: "1px solid var(--border)",
+                padding: "20px 24px 40px",
+                background: "var(--surface)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+              }}
+            >
+              {/* Question Navigation Tabs */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", borderBottom: "1px solid var(--border)", paddingBottom: 12 }}>
+                {questions.map((q, idx) => (
+                  <button
+                    key={q.id}
+                    onClick={() => handleQuestionSwitch(idx)}
+                    className="btn-press"
+                    style={{
+                      padding: "6px 14px",
+                      borderRadius: 8,
+                      border: currentIdx === idx ? "none" : "1px solid var(--border)",
+                      background: currentIdx === idx ? "var(--forge)" : "var(--bg2)",
+                      color: currentIdx === idx ? "#fff" : "var(--text2)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Q{idx + 1}
+                  </button>
+                ))}
+              </div>
 
-        <main style={{ maxWidth: 960, margin: "0 auto", padding: "28px 24px 80px" }}>
-          {/* Top Bar: Progress, Timer, and Abort Button */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-            <div>
-              <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700 }}>
-                QUESTION {currentIdx + 1} OF {questions.length || 1}
-              </span>
-              <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: 0 }}>
-                1v1 Head-to-Head Clash
-              </h2>
+              {/* Header Title & Difficulty */}
+              {currentQ && (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--forge)", fontWeight: 800, textTransform: "uppercase" }}>
+                      QUESTION {currentIdx + 1} OF {questions.length}
+                    </span>
+                    <span style={{ fontSize: 11, fontWeight: 800, padding: "2px 10px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#10b981" }}>
+                      {currentQ.difficulty || "Medium"}
+                    </span>
+                  </div>
+
+                  <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: 0 }}>
+                    {currentQ.title || `Problem #${currentIdx + 1}`}
+                  </h2>
+
+                  <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.6, margin: 0 }}>
+                    {currentQ.description || currentQ.question_text}
+                  </p>
+
+                  {/* Input / Output Formats */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 14, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                    <div style={{ fontSize: 12, color: "var(--text)" }}>
+                      <strong style={{ color: "var(--forge)" }}>Input Format:</strong> {currentQ.inputFormat}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text)" }}>
+                      <strong style={{ color: "#10b981" }}>Output Format:</strong> {currentQ.outputFormat}
+                    </div>
+                  </div>
+
+                  {/* Sample Test Cases */}
+                  <div>
+                    <h4 style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 8, fontFamily: "Syne, sans-serif" }}>
+                      Sample Test Cases
+                    </h4>
+                    {(currentQ.sampleTestCases || []).map((tc, idx) => (
+                      <div key={idx} style={{ padding: 10, borderRadius: 10, background: "var(--bg2)", border: "1px solid var(--border)", marginBottom: 8 }}>
+                        <div style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text2)" }}>
+                          Input: <span style={{ color: "var(--forge)" }}>{tc.input}</span>
+                        </div>
+                        <div style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text2)", marginTop: 2 }}>
+                          Expected: <span style={{ color: "#10b981" }}>{tc.expected}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* Timer & Abort Control Bar */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ padding: "8px 16px", borderRadius: 14, background: timeLeft < 60 ? "rgba(248,113,113,0.15)" : "var(--bg2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 14 }}>⏳</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 18, color: timeLeft < 60 ? "#f87171" : "var(--text)" }}>
-                  {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+            {/* Right Panel: Live Code Compiler IDE */}
+            <div style={{ width: `${100 - leftWidthPct}%`, height: "100%", paddingLeft: 8 }}>
+              {currentQ && (
+                <CodeCompilerSandbox
+                  initialLanguage="javascript"
+                  defaultCode={answers[currentQ.id] || ""}
+                  onCodeChange={(newCode) => handleAnswerChange(currentQ.id, newCode)}
+                  onSubmitSolution={(newCode) => handleAnswerChange(currentQ.id, newCode)}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          /* Standard Voice Interview Layout when matchType === "interview" */
+          <main style={{ maxWidth: 960, margin: "0 auto", padding: "28px 24px 80px" }}>
+            {/* Top Bar: Progress, Timer, and Abort Button */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div>
+                <span style={{ fontSize: 11, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700 }}>
+                  QUESTION {currentIdx + 1} OF {questions.length || 1}
+                </span>
+                <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 20, fontWeight: 800, color: "var(--text)", margin: 0 }}>
+                  1v1 Head-to-Head Clash
+                </h2>
+              </div>
+
+              {/* Timer & Abort Control Bar */}
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ padding: "8px 16px", borderRadius: 14, background: timeLeft < 60 ? "rgba(248,113,113,0.15)" : "var(--bg2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 14 }}>⏳</span>
+                  <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 18, color: timeLeft < 60 ? "#f87171" : "var(--text)" }}>
+                    {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowAbortModal(true)}
+                  className="btn-press"
+                  style={{
+                    padding: "8px 16px",
+                    borderRadius: 14,
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.35)",
+                    color: "#f87171",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  🛑 End Challenge
+                </button>
+              </div>
+            </div>
+
+            {/* Opponent Progress Bar */}
+            <div className="glass" style={{ borderRadius: 16, padding: "12px 18px", border: "1px solid var(--border)", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 18 }}>⚔️</span>
+                <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 600 }}>
+                  Opponent Status: {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently on Q${opponentIdx + 1}/${questions.length || 1}`}
                 </span>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAbortModal(true)}
-                className="btn-press"
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: 14,
-                  background: "rgba(239, 68, 68, 0.12)",
-                  border: "1px solid rgba(239, 68, 68, 0.35)",
-                  color: "#f87171",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                🛑 End Challenge
-              </button>
-            </div>
-          </div>
-
-          {/* Opponent Progress Bar */}
-          <div className="glass" style={{ borderRadius: 16, padding: "12px 18px", border: "1px solid var(--border)", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 18 }}>⚔️</span>
-              <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 600 }}>
-                Opponent Status: {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently on Q${opponentIdx + 1}/${questions.length || 1}`}
-              </span>
-            </div>
-            <div style={{ width: 120, height: 6, background: "var(--bg3)", borderRadius: 999, overflow: "hidden" }}>
-              <div style={{ height: "100%", background: "#f43f5e", width: `${((opponentIdx + 1) / (questions.length || 1)) * 100}%`, transition: "width 0.3s" }} />
-            </div>
-          </div>
-
-          {/* Question Box */}
-          {currentQ && (
-            <div className="glass glow-red-sm" style={{ borderRadius: 24, padding: 28, border: "1px solid var(--border)", marginBottom: 24 }}>
-              <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".06em" }}>
-                QUESTION {currentIdx + 1}
-              </span>
-              <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", margin: "8px 0 16px", lineHeight: 1.5 }}>
-                {currentQ.question_text}
-              </h3>
-
-              {/* Response Mode Selector */}
-              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-                <button
-                  type="button"
-                  onClick={() => setResponseMode("text")}
-                  style={{
-                    padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                    border: responseMode === "text" ? "none" : "1px solid var(--border)",
-                    background: responseMode === "text" ? "#f43f5e" : "var(--surface)",
-                    color: responseMode === "text" ? "#fff" : "var(--text2)",
-                  }}
-                >
-                  📝 Text Explanation
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setResponseMode("code")}
-                  style={{
-                    padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer",
-                    border: responseMode === "code" ? "none" : "1px solid var(--border)",
-                    background: responseMode === "code" ? "#f43f5e" : "var(--surface)",
-                    color: responseMode === "code" ? "#fff" : "var(--text2)",
-                  }}
-                >
-                  💻 Code Sandbox
-                </button>
+              <div style={{ width: 120, height: 6, background: "var(--bg3)", borderRadius: 999, overflow: "hidden" }}>
+                <div style={{ height: "100%", background: "#f43f5e", width: `${((opponentIdx + 1) / (questions.length || 1)) * 100}%`, transition: "width 0.3s" }} />
               </div>
+            </div>
 
-              {/* Response Input */}
-              {responseMode === "text" ? (
+            {/* Question Box */}
+            {currentQ && (
+              <div className="glass glow-red-sm" style={{ borderRadius: 24, padding: 28, border: "1px solid var(--border)", marginBottom: 24 }}>
+                <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text3)", textTransform: "uppercase", letterSpacing: ".06em" }}>
+                  QUESTION {currentIdx + 1}
+                </span>
+                <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", margin: "8px 0 16px", lineHeight: 1.5 }}>
+                  {currentQ.question_text}
+                </h3>
+
+                {/* Response Input */}
                 <textarea
                   value={answers[currentQ.id] || ""}
                   onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
@@ -408,62 +506,53 @@ export default function ClashMatchPage() {
                     resize: "vertical", outline: "none"
                   }}
                 />
-              ) : (
-                <div style={{ height: 380 }}>
-                  <CodeCompilerSandbox
-                    initialLanguage="javascript"
-                    defaultCode={answers[currentQ.id] || ""}
-                    onCodeChange={(newCode) => handleAnswerChange(currentQ.id, newCode)}
-                    onSubmitSolution={(newCode) => handleAnswerChange(currentQ.id, newCode)}
-                  />
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
 
-          {/* Bottom Nav Controls */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <button
-              onClick={handlePrev}
-              disabled={currentIdx === 0}
-              className="btn-press"
-              style={{
-                padding: "10px 20px", borderRadius: 12, border: "1px solid var(--border)",
-                background: "var(--surface)", color: "var(--text2)", fontSize: 14, fontWeight: 600, cursor: "pointer",
-                opacity: currentIdx === 0 ? 0.5 : 1
-              }}
-            >
-              ← Previous
-            </button>
-
-            {currentIdx < questions.length - 1 ? (
+            {/* Bottom Nav Controls */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button
-                onClick={handleNext}
+                onClick={handlePrev}
+                disabled={currentIdx === 0}
                 className="btn-press"
                 style={{
-                  padding: "10px 24px", borderRadius: 12, border: "none",
-                  background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "#fff",
-                  fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer"
+                  padding: "10px 20px", borderRadius: 12, border: "1px solid var(--border)",
+                  background: "var(--surface)", color: "var(--text2)", fontSize: 14, fontWeight: 600, cursor: "pointer",
+                  opacity: currentIdx === 0 ? 0.5 : 1
                 }}
               >
-                Next Question →
+                ← Previous
               </button>
-            ) : (
-              <button
-                onClick={doAutoSubmit}
-                disabled={isSubmitting}
-                className="btn-press glow-red-sm"
-                style={{
-                  padding: "10px 28px", borderRadius: 12, border: "none",
-                  background: "linear-gradient(135deg, #f43f5e, #be123c)", color: "#fff",
-                  fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
-                }}
-              >
-                {isSubmitting ? "Submitting..." : "Finish Battle & Submit ⚔️"}
-              </button>
-            )}
-          </div>
-        </main>
+
+              {currentIdx < questions.length - 1 ? (
+                <button
+                  onClick={handleNext}
+                  className="btn-press"
+                  style={{
+                    padding: "10px 24px", borderRadius: 12, border: "none",
+                    background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "#fff",
+                    fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 14, cursor: "pointer"
+                  }}
+                >
+                  Next Question →
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowAbortModal(true)}
+                  disabled={isSubmitting}
+                  className="btn-press glow-red-sm"
+                  style={{
+                    padding: "10px 28px", borderRadius: 12, border: "none",
+                    background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff",
+                    fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
+                  }}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit All Answers 🚀"}
+                </button>
+              )}
+            </div>
+          </main>
+        )}
       </div>
     </div>
   );
