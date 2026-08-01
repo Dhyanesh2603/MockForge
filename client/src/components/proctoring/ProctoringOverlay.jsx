@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 export default function ProctoringOverlay({
   videoRef,
@@ -16,18 +16,54 @@ export default function ProctoringOverlay({
 
   const statusLabels = {
     CLEAR: null,
-    COVERED: "🖐️ Covered",
-    BLEACHED: "☀️ Bleach",
-    FACE_MISSING: "👤 No Face",
-    MULTI_FACE: "👥 Multi",
-    GAZE_AWAY: "👁️ Gaze",
-    AUDIO_BURST: "🔊 Noise",
-    AUDIO_SPEECH: "🗣️ Speech",
+    COVERED: "Covered",
+    BLEACHED: "Bleach",
+    FACE_MISSING: "No Face",
+    MULTI_FACE: "Multi",
+    GAZE_AWAY: "Gaze",
+    AUDIO_BURST: "Noise",
+    AUDIO_SPEECH: "Speech",
   };
   const statusLabel = statusLabels[visibilityStatus];
 
   const tabColor =
     tabSwitchCount === 0 ? "#34d399" : tabSwitchCount <= 1 ? "#fbbf24" : "#f87171";
+
+  // Draggable Movable Position State
+  const [position, setPosition] = useState(() => ({
+    x: Math.max(20, window.innerWidth - 310),
+    y: Math.max(80, window.innerHeight - 260),
+  }));
+  const isDraggingRef = useRef(false);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    dragOffsetRef.current = {
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    };
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDraggingRef.current) return;
+      const newX = Math.max(10, Math.min(window.innerWidth - 290, e.clientX - dragOffsetRef.current.x));
+      const newY = Math.max(10, Math.min(window.innerHeight - 240, e.clientY - dragOffsetRef.current.y));
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   return (
     <>
@@ -54,7 +90,6 @@ export default function ProctoringOverlay({
             alignItems: "center",
             gap: 10,
             backdropFilter: "blur(8px)",
-            animation: "slideDown 0.3s ease-out",
             maxWidth: "90vw",
           }}
         >
@@ -69,25 +104,28 @@ export default function ProctoringOverlay({
         </div>
       )}
 
-      {/* Floating WebCam Preview Widget */}
+      {/* Floating Movable WebCam Preview Widget (280px x 185px) */}
       <div
         style={{
           position: "fixed",
-          bottom: 24,
-          right: 24,
-          zIndex: 900,
-          width: 230,
+          left: position.x,
+          top: position.y,
+          zIndex: 999,
+          width: 280,
           borderRadius: 20,
           background: "var(--surface)",
-          border: `1px solid ${badgeColor}50`,
-          boxShadow: `0 12px 32px rgba(0,0,0,0.4), 0 0 16px ${badgeColor}25`,
+          border: `1px solid ${badgeColor}60`,
+          boxShadow: `0 14px 36px rgba(0,0,0,0.45), 0 0 20px ${badgeColor}30`,
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          userSelect: "none",
         }}
       >
-        {/* Top Header */}
+        {/* Top Header Drag Handle */}
         <div
+          onMouseDown={handleMouseDown}
+          title="Click and drag to move camera preview anywhere"
           style={{
             display: "flex",
             alignItems: "center",
@@ -95,16 +133,18 @@ export default function ProctoringOverlay({
             padding: "8px 12px",
             background: "var(--bg2)",
             borderBottom: "1px solid var(--border)",
+            cursor: "grab",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--text2)", fontFamily: "monospace" }}>
-              FORGE GUARD
+            <span style={{ fontSize: 12, color: "var(--text3)", cursor: "grab" }}>⋮⋮</span>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "var(--text)", fontFamily: "monospace" }}>
+              FORGE GUARD (DRAG TO MOVE)
             </span>
           </div>
           <span
             style={{
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: 800,
               color: badgeColor,
               fontFamily: "monospace",
@@ -114,8 +154,8 @@ export default function ProctoringOverlay({
           </span>
         </div>
 
-        {/* Video Preview */}
-        <div style={{ position: "relative", width: 230, height: 160, background: "#000" }}>
+        {/* Video Preview (Enlarged to 280px x 185px) */}
+        <div style={{ position: "relative", width: 280, height: 185, background: "#000" }}>
           <video
             ref={videoRef}
             autoPlay
@@ -144,8 +184,8 @@ export default function ProctoringOverlay({
                 textAlign: "center",
               }}
             >
-              <span style={{ fontSize: 18, marginBottom: 4 }}>📷</span>
-              <span style={{ fontSize: 10, lineHeight: 1.2 }}>Cam Inactive</span>
+              <span style={{ fontSize: 20, marginBottom: 4 }}>📷</span>
+              <span style={{ fontSize: 11, lineHeight: 1.2 }}>Cam Inactive</span>
             </div>
           )}
 
@@ -159,22 +199,22 @@ export default function ProctoringOverlay({
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
-                padding: "2px 6px",
+                padding: "2px 8px",
                 borderRadius: 999,
-                background: "rgba(0,0,0,0.6)",
+                background: "rgba(0,0,0,0.65)",
                 backdropFilter: "blur(4px)",
               }}
             >
               <div
                 style={{
-                  width: 6,
-                  height: 6,
+                  width: 7,
+                  height: 7,
                   borderRadius: "50%",
                   background: "#f43f5e",
-                  boxShadow: "0 0 6px #f43f5e",
+                  boxShadow: "0 0 8px #f43f5e",
                 }}
               />
-              <span style={{ fontSize: 8, color: "#fff", fontWeight: 700, fontFamily: "monospace" }}>
+              <span style={{ fontSize: 9, color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
                 LIVE
               </span>
             </div>
@@ -187,13 +227,13 @@ export default function ProctoringOverlay({
                 position: "absolute",
                 top: 8,
                 right: 8,
-                padding: "2px 6px",
+                padding: "3px 8px",
                 borderRadius: 999,
-                background: "rgba(248, 113, 113, 0.85)",
+                background: "rgba(248, 113, 113, 0.9)",
                 backdropFilter: "blur(4px)",
-                fontSize: 8,
+                fontSize: 9,
                 color: "#fff",
-                fontWeight: 700,
+                fontWeight: 800,
                 fontFamily: "monospace",
               }}
             >
@@ -208,32 +248,31 @@ export default function ProctoringOverlay({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "5px 10px",
+            padding: "6px 12px",
             background: "var(--bg2)",
             borderTop: "1px solid var(--border)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 9 }}>🔄</span>
-            <span style={{ fontSize: 9, color: tabColor, fontWeight: 700, fontFamily: "monospace" }}>
-              Tab: {tabSwitchCount}/2
+            <span style={{ fontSize: 10, color: tabColor, fontWeight: 700, fontFamily: "monospace" }}>
+              Tab Switches: {tabSwitchCount}/2
             </span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {eyeTrackingActive && (
-              <span style={{ fontSize: 8, color: "#34d399", fontFamily: "monospace" }} title="Eye tracking active">
-                👁️
+              <span style={{ fontSize: 10, color: "#34d399", fontFamily: "monospace" }} title="Eye tracking active">
+                👁️ Eye Guard
               </span>
             )}
             <div
               style={{
-                width: 5,
-                height: 5,
+                width: 6,
+                height: 6,
                 borderRadius: "50%",
                 background: visibilityStatus === "CLEAR" ? "#34d399" : "#f87171",
               }}
             />
-            <span style={{ fontSize: 9, color: "var(--text3)", fontFamily: "monospace" }}>
+            <span style={{ fontSize: 10, color: "var(--text3)", fontFamily: "monospace", fontWeight: 700 }}>
               {visibilityStatus === "CLEAR" ? "OK" : "ALERT"}
             </span>
           </div>
