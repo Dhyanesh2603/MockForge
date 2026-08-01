@@ -9,6 +9,7 @@ import interviewRoutes from "./routes/interviewRoutes.js";
 import answerRoutes from "./routes/answerRoutes.js";
 
 import resultRoutes from "./routes/resultRoutes.js";
+import clashRoutes from "./routes/clashRoutes.js";
 
 const app = express();
 
@@ -33,5 +34,7 @@ app.use(
 app.use("/api/answers", answerRoutes);
 
 app.use("/api/results", resultRoutes);
+
+app.use("/api/clash", clashRoutes);
 
 export default app;
