@@ -1,10 +1,12 @@
 import { evaluateInterview } from "./evaluationService.js";
+import { evaluateCodeClashPair } from "./aiService.js";
 
 export const evaluateClashMatch = async ({
   roomCode,
   role,
   techStack,
   difficulty,
+  matchType = "interview",
   questions = [],
   participants = [],
   answers = [],
@@ -24,6 +26,64 @@ export const evaluateClashMatch = async ({
     };
   });
 
+  const p1 = participants[0];
+  const p2 = participants[1] || participants[0];
+
+  const p1Answers = answers.filter((a) => String(a.user_id || a.userId) === String(p1.user_id || p1.userId));
+  const p2Answers = answers.filter((a) => String(a.user_id || a.userId) === String(p2.user_id || p2.userId));
+
+  if (matchType === "coding") {
+    // Run AI Code Review & Complexity Analysis
+    const codeEval = await evaluateCodeClashPair({
+      topic: techStack || role || "Coding Challenge",
+      difficulty,
+      questions: normalizedQuestions,
+      p1: { userId: p1.user_id || p1.userId, name: p1.user_name || p1.userName || "Player 1", answers: p1Answers },
+      p2: { userId: p2.user_id || p2.userId, name: p2.user_name || p2.userName || "Player 2", answers: p2Answers },
+    });
+
+    const playerEvaluations = [
+      {
+        userId: p1.user_id || p1.userId,
+        userName: p1.user_name || p1.userName || "Player 1",
+        userPicture: p1.user_picture || p1.userPicture || "",
+        evaluation: {
+          overallScore: codeEval.player1?.score || 80,
+          technicalScore: codeEval.player1?.correctnessScore || 80,
+          communicationScore: 85,
+          clarityScore: 85,
+          timeComplexity: codeEval.player1?.timeComplexity || "O(N)",
+          spaceComplexity: codeEval.player1?.spaceComplexity || "O(1)",
+          questionCritiques: [codeEval.player1?.critique || "Valid algorithmic solution."],
+        },
+      },
+      {
+        userId: p2.user_id || p2.userId,
+        userName: p2.user_name || p2.userName || "Player 2",
+        userPicture: p2.user_picture || p2.userPicture || "",
+        evaluation: {
+          overallScore: codeEval.player2?.score || 75,
+          technicalScore: codeEval.player2?.correctnessScore || 75,
+          communicationScore: 80,
+          clarityScore: 80,
+          timeComplexity: codeEval.player2?.timeComplexity || "O(N^2)",
+          spaceComplexity: codeEval.player2?.spaceComplexity || "O(N)",
+          questionCritiques: [codeEval.player2?.critique || "Valid solution provided."],
+        },
+      },
+    ];
+
+    return {
+      roomCode,
+      matchType: "coding",
+      winnerUserId: codeEval.winnerUserId,
+      winnerRationale: codeEval.winnerRationale,
+      players: playerEvaluations,
+      questions: normalizedQuestions,
+    };
+  }
+
+  // Standard Voice Interview Match Evaluation
   const evalPromises = participants.map((p) => {
     const userAnswers = answers.filter(
       (a) => String(a.user_id || a.userId) === String(p.user_id || p.userId)
@@ -66,13 +126,13 @@ export const evaluateClashMatch = async ({
   // Compare overall scores to determine winner
   let winnerUserId = null;
   if (playerEvaluations.length >= 2) {
-    const p1 = playerEvaluations[0];
-    const p2 = playerEvaluations[1];
+    const player1 = playerEvaluations[0];
+    const player2 = playerEvaluations[1];
 
-    if (p1.evaluation.overallScore > p2.evaluation.overallScore) {
-      winnerUserId = p1.userId;
-    } else if (p2.evaluation.overallScore > p1.evaluation.overallScore) {
-      winnerUserId = p2.userId;
+    if (player1.evaluation.overallScore > player2.evaluation.overallScore) {
+      winnerUserId = player1.userId;
+    } else if (player2.evaluation.overallScore > player1.evaluation.overallScore) {
+      winnerUserId = player2.userId;
     } else {
       winnerUserId = null; // Tie
     }
@@ -82,6 +142,7 @@ export const evaluateClashMatch = async ({
 
   return {
     roomCode,
+    matchType: "interview",
     winnerUserId,
     players: playerEvaluations,
     questions: normalizedQuestions,

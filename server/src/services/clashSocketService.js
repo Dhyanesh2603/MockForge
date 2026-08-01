@@ -140,6 +140,7 @@ export const initClashSocket = (io) => {
             role: room.role,
             techStack: room.tech_stack,
             difficulty: room.difficulty,
+            matchType: room.match_type || "interview",
             questions,
             participants,
             answers: allAnswers,

@@ -128,9 +128,21 @@ export default function ClashResultPage() {
             <h1 style={{ fontFamily: "Syne, sans-serif", fontSize: "clamp(2rem, 5vw, 2.8rem)", fontWeight: 800, color: "var(--text)", margin: "8px 0 12px" }}>
               {isTie ? "It's a Tie Match!" : String(winnerId) === String(p1.userId) ? `${p1.userName} Wins!` : `${p2.userName} Wins!`}
             </h1>
-            <p style={{ color: "var(--text2)", fontSize: 15, margin: 0 }}>
+            <p style={{ color: "var(--text2)", fontSize: 15, margin: "0 0 16px" }}>
               {isTie ? "Both candidates delivered equal performances." : `${isMeWinner ? "Congratulations! You outperformed your opponent." : "Great effort! Practice more to top the next clash."}`}
             </p>
+
+            {/* AI Winner Rationale Banner */}
+            {matchData?.winnerRationale && (
+              <div style={{ marginTop: 14, padding: "12px 18px", borderRadius: 14, background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", maxWidth: 640, margin: "14px auto 0" }}>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "var(--forge)", fontFamily: "monospace", textTransform: "uppercase" }}>
+                  AI WINNER DECISION RATIONALE
+                </span>
+                <p style={{ fontSize: 13, color: "var(--text)", margin: "4px 0 0", lineHeight: 1.6, fontWeight: 600 }}>
+                  "{matchData.winnerRationale}"
+                </p>
+              </div>
+            )}
 
             {/* Score Comparison Pods */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, maxWidth: 540, margin: "24px auto 0" }}>
@@ -143,7 +155,18 @@ export default function ClashResultPage() {
                 <div style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 800, color: "var(--text)", margin: "4px 0" }}>
                   {p1Score}
                 </div>
-                <span style={{ fontSize: 11, color: "var(--text3)" }}>Overall Score</span>
+                <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>Overall Score</span>
+                
+                {p1.evaluation?.timeComplexity && (
+                  <div style={{ marginTop: 10, display: "flex", justifyContent: "center", gap: 6 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(56,189,248,0.15)", color: "#38bdf8", fontFamily: "monospace" }}>
+                      Time: {p1.evaluation.timeComplexity}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#10b981", fontFamily: "monospace" }}>
+                      Space: {p1.evaluation.spaceComplexity}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Player 2 Pod */}
@@ -155,7 +178,18 @@ export default function ClashResultPage() {
                 <div style={{ fontFamily: "Syne, sans-serif", fontSize: 36, fontWeight: 800, color: "var(--text)", margin: "4px 0" }}>
                   {p2Score}
                 </div>
-                <span style={{ fontSize: 11, color: "var(--text3)" }}>Overall Score</span>
+                <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>Overall Score</span>
+
+                {p2.evaluation?.timeComplexity && (
+                  <div style={{ marginTop: 10, display: "flex", justifyContent: "center", gap: 6 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(244,63,94,0.15)", color: "#f43f5e", fontFamily: "monospace" }}>
+                      Time: {p2.evaluation.timeComplexity}
+                    </span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(16,185,129,0.15)", color: "#10b981", fontFamily: "monospace" }}>
+                      Space: {p2.evaluation.spaceComplexity}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

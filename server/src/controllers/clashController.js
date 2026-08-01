@@ -1,4 +1,4 @@
-import { generateInterviewQuestions } from "../services/aiService.js";
+import { generateInterviewQuestions, generateCodingChallenge } from "../services/aiService.js";
 import {
   createClashRoomInDb,
   saveClashQuestions,
@@ -26,7 +26,7 @@ function generateRoomCode() {
 
 export const createClashRoom = async (req, res) => {
   try {
-    const { role, techStack, difficulty, numQuestions = 3, proctored = true } = req.body;
+    const { role, techStack, difficulty, numQuestions = 3, proctored = true, matchType = "interview" } = req.body;
     const hostUserId = req.user.uid;
 
     if (!role || !techStack || !difficulty) {
@@ -42,15 +42,25 @@ export const createClashRoom = async (req, res) => {
       difficulty,
       numQuestions: Number(numQuestions) || 3,
       proctored: Boolean(proctored),
+      matchType,
     });
 
     // Generate shared questions for both candidates
-    const rawQuestions = await generateInterviewQuestions({
-      role,
-      techStack,
-      difficulty,
-      numQuestions: Number(numQuestions) || 3,
-    });
+    let rawQuestions = [];
+    if (matchType === "coding") {
+      rawQuestions = await generateCodingChallenge({
+        topic: techStack || role,
+        difficulty,
+        numQuestions: Number(numQuestions) || 3,
+      });
+    } else {
+      rawQuestions = await generateInterviewQuestions({
+        role,
+        techStack,
+        difficulty,
+        numQuestions: Number(numQuestions) || 3,
+      });
+    }
 
     const savedQuestions = await saveClashQuestions(roomCode, rawQuestions);
 

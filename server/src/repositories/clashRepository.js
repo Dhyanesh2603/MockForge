@@ -18,6 +18,7 @@ export const initClashDb = async () => {
       );
 
       ALTER TABLE clash_rooms ADD COLUMN IF NOT EXISTS proctored BOOLEAN DEFAULT true;
+      ALTER TABLE clash_rooms ADD COLUMN IF NOT EXISTS match_type VARCHAR(50) DEFAULT 'interview';
 
       CREATE TABLE IF NOT EXISTS clash_questions (
         id BIGSERIAL PRIMARY KEY,
@@ -73,10 +74,11 @@ export const createClashRoomInDb = async ({
   difficulty,
   numQuestions,
   proctored = true,
+  matchType = "interview",
 }) => {
   const query = `
-    INSERT INTO clash_rooms (room_code, host_user_id, role, tech_stack, difficulty, num_questions, proctored)
-    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    INSERT INTO clash_rooms (room_code, host_user_id, role, tech_stack, difficulty, num_questions, proctored, match_type)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *
   `;
   const res = await pool.query(query, [
@@ -87,6 +89,7 @@ export const createClashRoomInDb = async ({
     difficulty,
     numQuestions,
     Boolean(proctored),
+    matchType,
   ]);
   return res.rows[0];
 };

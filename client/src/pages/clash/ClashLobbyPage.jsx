@@ -14,6 +14,7 @@ export default function ClashLobbyPage() {
   const [difficulty, setDifficulty] = useState("Medium");
   const [numQuestions, setNumQuestions] = useState(3);
   const [proctored, setProctored] = useState(true);
+  const [matchType, setMatchType] = useState("coding"); // "interview" | "coding"
   const [creating, setCreating] = useState(false);
 
   // Join Room state
@@ -31,7 +32,7 @@ export default function ClashLobbyPage() {
       const token = await user.getIdToken();
       const res = await api.post(
         "/clash/create",
-        { role, techStack, difficulty, numQuestions, proctored },
+        { role, techStack, difficulty, numQuestions, proctored, matchType },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -120,6 +121,49 @@ export default function ClashLobbyPage() {
               </div>
 
               <form onSubmit={handleCreateRoom} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Clash Match Mode Selector */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 6 }}>
+                    Clash Match Mode
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setMatchType("coding")}
+                      className="btn-press"
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: matchType === "coding" ? "none" : "1px solid var(--border)",
+                        background: matchType === "coding" ? "linear-gradient(135deg, #0ba5ec, #0284c7)" : "var(--bg2)",
+                        color: matchType === "coding" ? "#fff" : "var(--text2)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      💻 1v1 AI Code Clash
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMatchType("interview")}
+                      className="btn-press"
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: matchType === "interview" ? "none" : "1px solid var(--border)",
+                        background: matchType === "interview" ? "var(--forge)" : "var(--bg2)",
+                        color: matchType === "interview" ? "#fff" : "var(--text2)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                      }}
+                    >
+                      🗣️ Voice Interview Clash
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 6 }}>
                     Target Role
