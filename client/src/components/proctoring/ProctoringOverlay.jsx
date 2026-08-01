@@ -5,9 +5,24 @@ export default function ProctoringOverlay({
   cameraActive,
   integrityScore = 100,
   warningToast = null,
+  tabSwitchCount = 0,
+  visibilityStatus = "CLEAR",
 }) {
   const badgeColor =
     integrityScore >= 80 ? "#34d399" : integrityScore >= 60 ? "#fbbf24" : "#f87171";
+
+  const statusLabels = {
+    CLEAR: null,
+    COVERED: "🖐️ Covered",
+    BLEACHED: "☀️ Bleach",
+    FACE_MISSING: "👤 No Face",
+    MULTI_FACE: "👥 Multi",
+    GAZE_AWAY: "👁️ Gaze",
+  };
+  const statusLabel = statusLabels[visibilityStatus];
+
+  const tabColor =
+    tabSwitchCount === 0 ? "#34d399" : tabSwitchCount <= 1 ? "#fbbf24" : "#f87171";
 
   return (
     <>
@@ -33,6 +48,7 @@ export default function ProctoringOverlay({
             gap: 10,
             backdropFilter: "blur(8px)",
             animation: "slideDown 0.3s ease-out",
+            maxWidth: "90vw",
           }}
         >
           <span style={{ fontSize: 18 }}>⚠️</span>
@@ -49,7 +65,7 @@ export default function ProctoringOverlay({
           bottom: 24,
           right: 24,
           zIndex: 900,
-          width: 160,
+          width: 176,
           borderRadius: 18,
           background: "var(--surface)",
           border: `1px solid ${badgeColor}40`,
@@ -72,7 +88,7 @@ export default function ProctoringOverlay({
         >
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <span style={{ fontSize: 10 }}>🛡️</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text2)", fontFamily: "monospace" }}>
+            <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text2)", fontFamily: "monospace" }}>
               FORGE GUARD
             </span>
           </div>
@@ -89,7 +105,7 @@ export default function ProctoringOverlay({
         </div>
 
         {/* Video Preview Frame */}
-        <div style={{ position: "relative", width: 160, height: 110, background: "#000" }}>
+        <div style={{ position: "relative", width: 176, height: 120, background: "#000" }}>
           <video
             ref={videoRef}
             autoPlay
@@ -99,7 +115,7 @@ export default function ProctoringOverlay({
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              transform: "scaleX(-1)", // Mirror camera feed
+              transform: "scaleX(-1)",
               display: cameraActive ? "block" : "none",
             }}
           />
@@ -153,6 +169,59 @@ export default function ProctoringOverlay({
               </span>
             </div>
           )}
+
+          {/* Visibility Status Badge (top-right) */}
+          {statusLabel && (
+            <div
+              style={{
+                position: "absolute",
+                top: 8,
+                right: 8,
+                padding: "2px 6px",
+                borderRadius: 999,
+                background: "rgba(248, 113, 113, 0.85)",
+                backdropFilter: "blur(4px)",
+                fontSize: 8,
+                color: "#fff",
+                fontWeight: 700,
+                fontFamily: "monospace",
+              }}
+            >
+              {statusLabel}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom Info Bar — Tab Switch Counter */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "5px 10px",
+            background: "var(--bg2)",
+            borderTop: "1px solid var(--border)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span style={{ fontSize: 9 }}>🔄</span>
+            <span style={{ fontSize: 9, color: tabColor, fontWeight: 700, fontFamily: "monospace" }}>
+              Tab: {tabSwitchCount}/2
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div
+              style={{
+                width: 5,
+                height: 5,
+                borderRadius: "50%",
+                background: visibilityStatus === "CLEAR" ? "#34d399" : "#f87171",
+              }}
+            />
+            <span style={{ fontSize: 9, color: "var(--text3)", fontFamily: "monospace" }}>
+              {visibilityStatus === "CLEAR" ? "OK" : "ALERT"}
+            </span>
+          </div>
         </div>
       </div>
     </>

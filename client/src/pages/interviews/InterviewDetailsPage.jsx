@@ -2,8 +2,9 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
-import { useProctoring } from "../../hooks/useProctoring";
+import { useAdvancedProctoring } from "../../hooks/useAdvancedProctoring";
 import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
+import ProctoringPauseOverlay from "../../components/proctoring/ProctoringPauseOverlay";
 import DeviceCheckModal from "../../components/proctoring/DeviceCheckModal";
 
 /* ── icons ── */
@@ -119,6 +120,9 @@ export default function InterviewDetailsPage() {
   const [timeLeft,setTimeLeft]=useState(()=>{
     const s=localStorage.getItem(`mf-timer-${id}`); return s?Number(s):30*60;
   });
+  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
+  const isProctored = interview ? Boolean(interview.proctored) : false;
+  const proctoring = useAdvancedProctoring(isProctored && started && !submitted);
 
   /* fetch */
   useEffect(()=>{
@@ -147,9 +151,9 @@ export default function InterviewDetailsPage() {
     })();
   },[id,user,navigate]);
 
-  /* timer */
+  /* timer — pauses when proctoring isPaused */
   useEffect(()=>{
-    if(!started||submitted) return;
+    if(!started||submitted||proctoring.isPaused) return;
     const t=setInterval(()=>{
       setTimeLeft(prev=>{
         const u=prev-1;
@@ -159,7 +163,7 @@ export default function InterviewDetailsPage() {
       });
     },1000);
     return()=>clearInterval(t);
-  },[started,submitted]);
+  },[started,submitted,proctoring.isPaused]);
 
   /* auto-focus textarea */
   useEffect(()=>{
@@ -189,9 +193,13 @@ export default function InterviewDetailsPage() {
     },700);
   };
 
-  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
-  const isProctored = interview ? Boolean(interview.proctored) : false;
-  const proctoring = useProctoring(isProctored && started && !submitted);
+
+  // Auto-submit on disqualification (3 tab switches)
+  useEffect(() => {
+    if (proctoring.isDisqualified && !submitted && !submitting) {
+      doSubmit();
+    }
+  }, [proctoring.isDisqualified, submitted, submitting]);
 
   const doSubmit=useCallback(async()=>{
     if(submitting||submitted) return;
@@ -511,6 +519,16 @@ export default function InterviewDetailsPage() {
           cameraActive={proctoring.cameraActive}
           integrityScore={proctoring.integrityScore}
           warningToast={proctoring.warningToast}
+          tabSwitchCount={proctoring.tabSwitchCount}
+          visibilityStatus={proctoring.visibilityStatus}
+        />
+      )}
+
+      {/* Auto-Pause Overlay — blocks test when visibility is lost */}
+      {isProctored && started && !submitted && proctoring.isPaused && (
+        <ProctoringPauseOverlay
+          reason={proctoring.pauseReason}
+          visibilityStatus={proctoring.visibilityStatus}
         />
       )}
     </div>
