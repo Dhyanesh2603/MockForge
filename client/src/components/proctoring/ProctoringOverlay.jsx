@@ -76,11 +76,11 @@ export default function ProctoringOverlay({
           bottom: 24,
           right: 24,
           zIndex: 900,
-          width: 176,
-          borderRadius: 18,
+          width: 230,
+          borderRadius: 20,
           background: "var(--surface)",
-          border: `1px solid ${badgeColor}40`,
-          boxShadow: `0 8px 24px rgba(0,0,0,0.3), 0 0 12px ${badgeColor}20`,
+          border: `1px solid ${badgeColor}50`,
+          boxShadow: `0 12px 32px rgba(0,0,0,0.4), 0 0 16px ${badgeColor}25`,
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -92,20 +92,20 @@ export default function ProctoringOverlay({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "6px 10px",
+            padding: "8px 12px",
             background: "var(--bg2)",
             borderBottom: "1px solid var(--border)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <span style={{ fontSize: 10 }}>🛡️</span>
-            <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text2)", fontFamily: "monospace" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 12 }}>🛡️</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text2)", fontFamily: "monospace" }}>
               FORGE GUARD
             </span>
           </div>
           <span
             style={{
-              fontSize: 9,
+              fontSize: 10,
               fontWeight: 800,
               color: badgeColor,
               fontFamily: "monospace",
@@ -116,7 +116,7 @@ export default function ProctoringOverlay({
         </div>
 
         {/* Video Preview */}
-        <div style={{ position: "relative", width: 176, height: 120, background: "#000" }}>
+        <div style={{ position: "relative", width: 230, height: 160, background: "#000" }}>
           <video
             ref={videoRef}
             autoPlay
