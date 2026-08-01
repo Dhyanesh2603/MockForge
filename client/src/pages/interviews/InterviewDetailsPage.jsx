@@ -225,7 +225,11 @@ export default function InterviewDetailsPage() {
       await api.post("/results/submit", {
         interviewId: id,
         proctoringData: {
-          integrityScore: proctoring.integrityScore,
+          warningCount: proctoring.warningCount,
+          maxWarnings: proctoring.maxWarnings,
+          tabSwitchCount: proctoring.tabSwitchCount,
+          isDisqualified: proctoring.isDisqualified,
+          eyeTrackingActive: proctoring.eyeTrackingActive,
           incidents: proctoring.incidents,
         },
       }, { headers: { Authorization: `Bearer ${tok}` } });
@@ -235,7 +239,7 @@ export default function InterviewDetailsPage() {
       navigate(`/results/${id}`);
     }catch(e){console.error(e);alert("Submission failed. Please try again.");}
     finally{setSubmitting(false);}
-  },[user,id,submitting,submitted,navigate,answers,proctoring.integrityScore,proctoring.incidents]);
+  },[user,id,submitting,submitted,navigate,answers,proctoring.warningCount,proctoring.incidents]);
 
   const toggleFlag=()=>{
     if(!cur) return;
@@ -517,18 +521,22 @@ export default function InterviewDetailsPage() {
         <ProctoringOverlay
           videoRef={proctoring.videoRef}
           cameraActive={proctoring.cameraActive}
-          integrityScore={proctoring.integrityScore}
+          warningCount={proctoring.warningCount}
+          maxWarnings={proctoring.maxWarnings}
           warningToast={proctoring.warningToast}
           tabSwitchCount={proctoring.tabSwitchCount}
           visibilityStatus={proctoring.visibilityStatus}
+          eyeTrackingActive={proctoring.eyeTrackingActive}
         />
       )}
 
-      {/* Auto-Pause Overlay — blocks test when visibility is lost */}
+      {/* Auto-Pause Overlay — blocks test when visibility/audio is lost */}
       {isProctored && started && !submitted && proctoring.isPaused && (
         <ProctoringPauseOverlay
           reason={proctoring.pauseReason}
           visibilityStatus={proctoring.visibilityStatus}
+          warningCount={proctoring.warningCount}
+          maxWarnings={proctoring.maxWarnings}
         />
       )}
     </div>

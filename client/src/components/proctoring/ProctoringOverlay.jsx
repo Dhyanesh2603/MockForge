@@ -3,13 +3,16 @@ import React from "react";
 export default function ProctoringOverlay({
   videoRef,
   cameraActive,
-  integrityScore = 100,
+  warningCount = 0,
+  maxWarnings = 5,
   warningToast = null,
   tabSwitchCount = 0,
   visibilityStatus = "CLEAR",
+  eyeTrackingActive = false,
 }) {
+  const warningRatio = warningCount / maxWarnings;
   const badgeColor =
-    integrityScore >= 80 ? "#34d399" : integrityScore >= 60 ? "#fbbf24" : "#f87171";
+    warningRatio <= 0.4 ? "#34d399" : warningRatio <= 0.7 ? "#fbbf24" : "#f87171";
 
   const statusLabels = {
     CLEAR: null,
@@ -18,6 +21,8 @@ export default function ProctoringOverlay({
     FACE_MISSING: "👤 No Face",
     MULTI_FACE: "👥 Multi",
     GAZE_AWAY: "👁️ Gaze",
+    AUDIO_BURST: "🔊 Noise",
+    AUDIO_SPEECH: "🗣️ Speech",
   };
   const statusLabel = statusLabels[visibilityStatus];
 
@@ -37,7 +42,9 @@ export default function ProctoringOverlay({
             zIndex: 1000,
             padding: "12px 24px",
             borderRadius: 16,
-            background: "rgba(244, 63, 94, 0.95)",
+            background: warningToast.type === "DISQUALIFIED"
+              ? "rgba(220, 38, 38, 0.97)"
+              : "rgba(244, 63, 94, 0.95)",
             color: "#fff",
             fontFamily: "Syne, sans-serif",
             fontWeight: 700,
@@ -51,9 +58,13 @@ export default function ProctoringOverlay({
             maxWidth: "90vw",
           }}
         >
-          <span style={{ fontSize: 18 }}>⚠️</span>
+          <span style={{ fontSize: 18 }}>
+            {warningToast.type === "DISQUALIFIED" ? "🚫" : "⚠️"}
+          </span>
           <span>
-            PROCTORING WARNING: {warningToast.detail}
+            {warningToast.type === "DISQUALIFIED"
+              ? warningToast.detail
+              : `WARNING ${warningCount}/${maxWarnings}: ${warningToast.detail}`}
           </span>
         </div>
       )}
@@ -75,7 +86,7 @@ export default function ProctoringOverlay({
           flexDirection: "column",
         }}
       >
-        {/* Top Trust Header */}
+        {/* Top Header */}
         <div
           style={{
             display: "flex",
@@ -94,17 +105,17 @@ export default function ProctoringOverlay({
           </div>
           <span
             style={{
-              fontSize: 10,
+              fontSize: 9,
               fontWeight: 800,
               color: badgeColor,
               fontFamily: "monospace",
             }}
           >
-            {integrityScore}%
+            {warningCount}/{maxWarnings}
           </span>
         </div>
 
-        {/* Video Preview Frame */}
+        {/* Video Preview */}
         <div style={{ position: "relative", width: 176, height: 120, background: "#000" }}>
           <video
             ref={videoRef}
@@ -139,7 +150,7 @@ export default function ProctoringOverlay({
             </div>
           )}
 
-          {/* Live Indicator Dot */}
+          {/* LIVE dot */}
           {cameraActive && (
             <div
               style={{
@@ -170,7 +181,7 @@ export default function ProctoringOverlay({
             </div>
           )}
 
-          {/* Visibility Status Badge (top-right) */}
+          {/* Status badge (top-right) */}
           {statusLabel && (
             <div
               style={{
@@ -192,7 +203,7 @@ export default function ProctoringOverlay({
           )}
         </div>
 
-        {/* Bottom Info Bar — Tab Switch Counter */}
+        {/* Bottom Info Bar */}
         <div
           style={{
             display: "flex",
@@ -210,6 +221,11 @@ export default function ProctoringOverlay({
             </span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {eyeTrackingActive && (
+              <span style={{ fontSize: 8, color: "#34d399", fontFamily: "monospace" }} title="Eye tracking active">
+                👁️
+              </span>
+            )}
             <div
               style={{
                 width: 5,

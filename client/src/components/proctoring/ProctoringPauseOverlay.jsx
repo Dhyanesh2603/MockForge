@@ -2,15 +2,17 @@ import React from "react";
 
 /**
  * ProctoringPauseOverlay — Full-screen overlay that pauses the test
- * when camera visibility is lost (covered, bleached, face missing).
- * Auto-dismisses when visibility restores.
+ * when camera/lighting/face/audio issues are detected.
+ * Auto-dismisses when the issue is resolved.
  */
-export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
+export default function ProctoringPauseOverlay({ reason, visibilityStatus, warningCount, maxWarnings }) {
   const icons = {
     COVERED: "🖐️",
     BLEACHED: "☀️",
     FACE_MISSING: "👤",
     MULTI_FACE: "👥",
+    AUDIO_BURST: "🔊",
+    AUDIO_SPEECH: "🗣️",
   };
 
   const titles = {
@@ -18,10 +20,12 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
     BLEACHED: "Excessive Light Detected",
     FACE_MISSING: "No Face Detected",
     MULTI_FACE: "Multiple Faces Detected",
+    AUDIO_BURST: "Loud Noise Detected",
+    AUDIO_SPEECH: "Background Speech Detected",
   };
 
   const icon = icons[visibilityStatus] || "⚠️";
-  const title = titles[visibilityStatus] || "Visibility Issue";
+  const title = titles[visibilityStatus] || "Proctoring Alert";
 
   return (
     <div
@@ -35,7 +39,7 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
         padding: 24,
       }}
     >
-      {/* Backdrop — heavy blur to completely hide test content */}
+      {/* Backdrop */}
       <div
         style={{
           position: "absolute",
@@ -116,6 +120,36 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
           {reason}
         </p>
 
+        {/* Warning counter */}
+        {warningCount != null && maxWarnings != null && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "8px 16px",
+              borderRadius: 12,
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              marginBottom: 20,
+            }}
+          >
+            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>
+              Warnings:
+            </span>
+            <span
+              style={{
+                fontSize: 14,
+                fontWeight: 800,
+                color: warningCount >= maxWarnings - 1 ? "#f87171" : "#fbbf24",
+                fontFamily: "monospace",
+              }}
+            >
+              {warningCount} / {maxWarnings}
+            </span>
+          </div>
+        )}
+
         {/* Status indicator */}
         <div
           style={{
@@ -146,7 +180,7 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
               textTransform: "uppercase",
             }}
           >
-            Waiting for visibility to restore...
+            Waiting for issue to resolve...
           </span>
         </div>
 
@@ -163,7 +197,6 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus }) {
         </p>
       </div>
 
-      {/* Keyframe animations */}
       <style>{`
         @keyframes pulseRing {
           0%, 100% { transform: scale(1); opacity: 1; }
