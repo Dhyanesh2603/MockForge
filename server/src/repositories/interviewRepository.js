@@ -1,20 +1,30 @@
 import pool from "../config/db.js";
 
+// Ensure proctored column exists in interviews table
+pool.query(`
+  ALTER TABLE interviews
+  ADD COLUMN IF NOT EXISTS proctored BOOLEAN DEFAULT true
+`).catch((err) => {
+  console.warn("proctored column check:", err.message);
+});
+
 export const createInterview =
   async ({
     userId,
     role,
     techStack,
     difficulty,
+    proctored = true,
   }) => {
     const query = `
       INSERT INTO interviews (
         user_id,
         role,
         tech_stack,
-        difficulty
+        difficulty,
+        proctored
       )
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `;
 
@@ -23,6 +33,7 @@ export const createInterview =
       role,
       techStack,
       difficulty,
+      proctored,
     ];
 
     const result = await pool.query(

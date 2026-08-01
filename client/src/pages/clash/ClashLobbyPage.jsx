@@ -13,6 +13,7 @@ export default function ClashLobbyPage() {
   const [techStack, setTechStack] = useState("React, JavaScript, CSS");
   const [difficulty, setDifficulty] = useState("Medium");
   const [numQuestions, setNumQuestions] = useState(3);
+  const [proctored, setProctored] = useState(true);
   const [creating, setCreating] = useState(false);
 
   // Join Room state
@@ -30,7 +31,7 @@ export default function ClashLobbyPage() {
       const token = await user.getIdToken();
       const res = await api.post(
         "/clash/create",
-        { role, techStack, difficulty, numQuestions },
+        { role, techStack, difficulty, numQuestions, proctored },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -187,6 +188,39 @@ export default function ClashLobbyPage() {
                       <option value={3}>3 Questions</option>
                       <option value={5}>5 Questions</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Session Mode Selector */}
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text2)", display: "block", marginBottom: 6 }}>
+                    Session Mode
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => setProctored(true)}
+                      style={{
+                        padding: "10px 8px", borderRadius: 12, cursor: "pointer", fontSize: 12, fontWeight: 700,
+                        border: proctored ? "1px solid #34d399" : "1px solid var(--border)",
+                        background: proctored ? "rgba(52,211,153,0.12)" : "var(--bg2)",
+                        color: proctored ? "#34d399" : "var(--text2)",
+                      }}
+                    >
+                      🛡️ Proctored
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProctored(false)}
+                      style={{
+                        padding: "10px 8px", borderRadius: 12, cursor: "pointer", fontSize: 12, fontWeight: 700,
+                        border: !proctored ? "1px solid #f43f5e" : "1px solid var(--border)",
+                        background: !proctored ? "rgba(244,63,94,0.12)" : "var(--bg2)",
+                        color: !proctored ? "#f43f5e" : "var(--text2)",
+                      }}
+                    >
+                      🔓 Unproctored
+                    </button>
                   </div>
                 </div>
 

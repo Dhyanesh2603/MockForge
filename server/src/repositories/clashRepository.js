@@ -12,9 +12,12 @@ export const initClashDb = async () => {
         tech_stack VARCHAR(100) NOT NULL,
         difficulty VARCHAR(50) NOT NULL,
         num_questions INT DEFAULT 3,
+        proctored BOOLEAN DEFAULT true,
         status VARCHAR(20) DEFAULT 'waiting', -- 'waiting', 'in_progress', 'completed'
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      ALTER TABLE clash_rooms ADD COLUMN IF NOT EXISTS proctored BOOLEAN DEFAULT true;
 
       CREATE TABLE IF NOT EXISTS clash_questions (
         id BIGSERIAL PRIMARY KEY,
@@ -69,10 +72,11 @@ export const createClashRoomInDb = async ({
   techStack,
   difficulty,
   numQuestions,
+  proctored = true,
 }) => {
   const query = `
-    INSERT INTO clash_rooms (room_code, host_user_id, role, tech_stack, difficulty, num_questions)
-    VALUES ($1, $2, $3, $4, $5, $6)
+    INSERT INTO clash_rooms (room_code, host_user_id, role, tech_stack, difficulty, num_questions, proctored)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *
   `;
   const res = await pool.query(query, [
@@ -82,6 +86,7 @@ export const createClashRoomInDb = async ({
     techStack,
     difficulty,
     numQuestions,
+    Boolean(proctored),
   ]);
   return res.rows[0];
 };

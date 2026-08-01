@@ -26,7 +26,7 @@ function generateRoomCode() {
 
 export const createClashRoom = async (req, res) => {
   try {
-    const { role, techStack, difficulty, numQuestions = 3 } = req.body;
+    const { role, techStack, difficulty, numQuestions = 3, proctored = true } = req.body;
     const hostUserId = req.user.uid;
 
     if (!role || !techStack || !difficulty) {
@@ -41,6 +41,7 @@ export const createClashRoom = async (req, res) => {
       techStack,
       difficulty,
       numQuestions: Number(numQuestions) || 3,
+      proctored: Boolean(proctored),
     });
 
     // Generate shared questions for both candidates

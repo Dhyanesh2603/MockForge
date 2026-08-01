@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import { useProctoring } from "../../hooks/useProctoring";
 import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
+import DeviceCheckModal from "../../components/proctoring/DeviceCheckModal";
 
 /* ── icons ── */
 const Svg = (d,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
@@ -153,7 +154,21 @@ export default function InterviewDetailsPage() {
     },700);
   };
 
-  const proctoring = useProctoring(started && !submitted);
+  const [deviceCheckDone, setDeviceCheckDone] = useState(false);
+  const isProctored = interview?.proctored !== false;
+  const proctoring = useProctoring(isProctored && started && !submitted);
+
+  if(!started) {
+    if (isProctored && !deviceCheckDone) {
+      return (
+        <DeviceCheckModal
+          onReady={() => setDeviceCheckDone(true)}
+          onCancel={() => navigate("/dashboard")}
+        />
+      );
+    }
+    return <Countdown role={interview?.role} onDone={() => setStarted(true)} />;
+  }
 
   const doSubmit=useCallback(async()=>{
     if(submitting||submitted) return;
@@ -206,8 +221,6 @@ export default function InterviewDetailsPage() {
       </div>
     </div>
   );
-
-  if(!started) return <Countdown role={interview?.role} onDone={()=>setStarted(true)}/>;
 
   const timerC=timeLeft<300?"#f87171":timeLeft<600?"#fbbf24":"var(--forge)";
   const timerBg=timeLeft<300?"rgba(248,113,113,.1)":timeLeft<600?"rgba(251,191,36,.1)":"rgba(var(--forge-rgb),.07)";

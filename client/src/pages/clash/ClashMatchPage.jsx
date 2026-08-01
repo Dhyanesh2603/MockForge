@@ -12,7 +12,8 @@ export default function ClashMatchPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const proctoring = useProctoring(true);
+  const [isProctored, setIsProctored] = useState(location.state?.proctored ?? true);
+  const proctoring = useProctoring(isProctored);
 
   const [questions, setQuestions] = useState(location.state?.questions || []);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -32,19 +33,20 @@ export default function ClashMatchPage() {
     const socket = connectClashSocket();
 
     // Fetch questions if missing
-    if (!questions.length) {
-      (async () => {
-        try {
-          const token = await user.getIdToken();
-          const res = await api.get(`/clash/${roomCode}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setQuestions(res.data.questions || []);
-        } catch (e) {
-          console.error(e);
+    (async () => {
+      try {
+        const token = await user.getIdToken();
+        const res = await api.get(`/clash/${roomCode}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!questions.length) setQuestions(res.data.questions || []);
+        if (res.data.room && res.data.room.proctored !== undefined) {
+          setIsProctored(Boolean(res.data.room.proctored));
         }
-      })();
-    }
+      } catch (e) {
+        console.error(e);
+      }
+    })();
 
     socket.on("opponent_progress", (data) => {
       if (String(data.userId) !== String(user.uid)) {
@@ -260,12 +262,14 @@ export default function ClashMatchPage() {
           </div>
         </main>
 
-        <ProctoringOverlay
-          videoRef={proctoring.videoRef}
-          cameraActive={proctoring.cameraActive}
-          integrityScore={proctoring.integrityScore}
-          warningToast={proctoring.warningToast}
-        />
+        {isProctored && (
+          <ProctoringOverlay
+            videoRef={proctoring.videoRef}
+            cameraActive={proctoring.cameraActive}
+            integrityScore={proctoring.integrityScore}
+            warningToast={proctoring.warningToast}
+          />
+        )}
       </div>
     </div>
   );

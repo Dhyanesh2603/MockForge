@@ -71,6 +71,7 @@ export default function CreateInterviewPage() {
   const [difficulty, setDifficulty] = useState("Medium");
   const [numQuestions, setNumQuestions] = useState(10);
   const [dynamic, setDynamic] = useState(false);
+  const [proctored, setProctored] = useState(true);
   const [focusAreas, setFocusAreas] = useState([]);
 
   // Step 3
@@ -108,6 +109,7 @@ export default function CreateInterviewPage() {
       jobDescription: jobDescription.slice(0, 600),
       additionalContext: additionalContext.slice(0, 300),
       dynamic,
+      proctored,
     };
 
     const r = await api.post(
@@ -251,27 +253,52 @@ export default function CreateInterviewPage() {
                   </div>
                 </div>
 
-                {/* Difficulty */}
+                {/* Proctored vs Unproctored Mode */}
                 <div>
-                  <Label>Question Difficulty</Label>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
-                    {Object.entries(dc).map(([lvl, cfg]) => (
-                      <button
-                        key={lvl}
-                        type="button"
-                        onClick={() => setDifficulty(lvl)}
-                        style={{
-                          padding: "14px 8px", borderRadius: 14, cursor: "pointer", textAlign: "left",
-                          border: difficulty === lvl ? `1px solid ${cfg.br}` : "1px solid var(--border)",
-                          background: difficulty === lvl ? cfg.bg : "var(--surface)",
-                          color: difficulty === lvl ? cfg.c : "var(--text2)",
-                          transition: "all .2s",
-                        }}
-                      >
-                        <p style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 15, margin: "0 0 4px" }}>{lvl}</p>
-                        <p style={{ fontSize: 11, margin: 0, opacity: .7 }}>{cfg.d}</p>
-                      </button>
-                    ))}
+                  <Label>Session Mode</Label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => setProctored(true)}
+                      style={{
+                        padding: "14px 12px", borderRadius: 16, cursor: "pointer", textAlign: "left",
+                        border: proctored ? "1px solid #34d399" : "1px solid var(--border)",
+                        background: proctored ? "rgba(52,211,153,0.08)" : "var(--surface)",
+                        transition: "all .2s",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: proctored ? "#34d399" : "var(--text)" }}>
+                          🛡️ Proctored
+                        </span>
+                        <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 4, background: "rgba(52,211,153,0.2)", color: "#34d399", fontWeight: 700 }}>
+                          RECOMMENDED
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: "var(--text3)", margin: 0, lineHeight: 1.4 }}>
+                        Camera/mic check, noise & tab-switch monitoring + Anti-Cheat Report.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setProctored(false)}
+                      style={{
+                        padding: "14px 12px", borderRadius: 16, cursor: "pointer", textAlign: "left",
+                        border: !proctored ? "1px solid var(--forge)" : "1px solid var(--border)",
+                        background: !proctored ? "rgba(var(--forge-rgb),0.08)" : "var(--surface)",
+                        transition: "all .2s",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: !proctored ? "var(--forge)" : "var(--text)" }}>
+                          🔓 Unproctored
+                        </span>
+                      </div>
+                      <p style={{ fontSize: 11, color: "var(--text3)", margin: 0, lineHeight: 1.4 }}>
+                        Casual practice mode without camera/mic or anti-cheat tracking.
+                      </p>
+                    </button>
                   </div>
                 </div>
 

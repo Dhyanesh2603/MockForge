@@ -12,13 +12,14 @@ export const createInterviewSession = async (req, res) => {
       focusAreas = "", targetCompany = "",
       jobDescription = "", additionalContext = "",
       dynamic = false,
+      proctored = true,
     } = req.body;
 
     if (!role || !techStack || !difficulty)
       return res.status(400).json({ message: "role, techStack and difficulty are required" });
 
     const interview = await createInterview({
-      userId: req.user.uid, role, techStack, difficulty,
+      userId: req.user.uid, role, techStack, difficulty, proctored: Boolean(proctored),
     });
 
     const questions = await generateInterviewQuestions({
