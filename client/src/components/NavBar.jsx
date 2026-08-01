@@ -55,6 +55,44 @@ export default function NavBar({ showLogout = true, rightSlot = null }) {
             {user && (
               <>
                 <Link
+                  to="/adaptive"
+                  className="btn-press"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 14px",
+                    borderRadius: 10,
+                    border: "1px solid rgba(99,102,241,0.3)",
+                    background: "rgba(99,102,241,0.08)",
+                    color: "var(--forge)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                  }}
+                >
+                  Adaptive Practice
+                </Link>
+                <Link
+                  to="/analytics"
+                  className="btn-press"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 14px",
+                    borderRadius: 10,
+                    border: "1px solid rgba(6,182,212,0.3)",
+                    background: "rgba(6,182,212,0.08)",
+                    color: "var(--accent-cyan)",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textDecoration: "none",
+                  }}
+                >
+                  Analytics
+                </Link>
+                <Link
                   to="/coding/new"
                   className="btn-press"
                   style={{

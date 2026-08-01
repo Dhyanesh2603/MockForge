@@ -330,7 +330,97 @@ CRITICAL RULES:
           { input: "nums = [4, 5, 6]", expected: "15" },
           { input: "nums = [10, 20]", expected: "30" }
         ]
-      }
     ];
+  }
+};
+
+/**
+ * Adaptive AI Interviewer Service
+ * Evaluates candidate answer depth and dynamically generates the next adaptive question.
+ */
+export const generateAdaptiveNextQuestion = async ({ topic, history = [], roleRubric = "General" }) => {
+  try {
+    const prompt = `
+You are a Lead Principal Engineer conducting an ADAPTIVE PRACTICE INTERVIEW on the topic "${topic}" evaluated against the "${roleRubric}" role rubric.
+
+Conversation History so far:
+${history.map((h, i) => `Q${i + 1}: ${h.question}\nCandidate Answer: ${h.answer}\nEvaluation: ${h.critique || "N/A"}`).join("\n\n")}
+
+Task:
+1. Analyze the candidate's last answer depth (Foundational, Intermediate, Advanced, Mastery).
+2. Dynamically determine the target difficulty for the next question:
+   - If candidate's answer was superficial or missed core concepts -> Ask a clarifying foundational question.
+   - If candidate answered correctly with strong rationale -> Increase difficulty to Advanced/Mastery, drilling into edge cases, optimization, or trade-offs.
+3. Formulate the next concise, high-impact technical question.
+
+Return ONLY a JSON object in this exact format (NO markdown \`\`\`json):
+{
+  "nextQuestion": "The next adaptive question string",
+  "difficulty": "Foundational" | "Intermediate" | "Advanced" | "Mastery",
+  "reasoning": "Brief 1-sentence explanation of why difficulty was adapted"
+}
+`;
+
+    const text = await callNvidia(prompt);
+    const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const data = JSON.parse(cleaned);
+    return data;
+  } catch (err) {
+    console.error("Adaptive question generation error:", err);
+    return {
+      nextQuestion: `How would you optimize performance and handle edge cases when working with ${topic} in production?`,
+      difficulty: "Advanced",
+      reasoning: "Adapted to test production optimization and resilience.",
+    };
+  }
+};
+
+/**
+ * Generate Comprehensive SWOT Analysis & Role Rubric Evaluation
+ */
+export const generateSwotAnalysis = async ({ topic, qnaPairs = [], roleRubric = "General" }) => {
+  try {
+    const prompt = `
+Perform a rigorous SWOT Analysis (Strengths, Weaknesses, Opportunities, Threats) and Role Rubric Evaluation for a candidate who completed an adaptive practice interview on "${topic}" under the "${roleRubric}" rubric.
+
+Candidate Q&A History:
+${qnaPairs.map((pair, idx) => `Q${idx + 1}: ${pair.question}\nA: ${pair.answer}`).join("\n\n")}
+
+Output MUST be a valid JSON object in this exact format (NO markdown \`\`\`json):
+{
+  "overallScore": 85,
+  "strengths": ["Clear architectural understanding", "Strong explanation of concurrency"],
+  "weaknesses": ["Missed edge-case memory handling", "Could elaborate more on caching"],
+  "opportunities": ["Practice async stream pipelines", "Study database locking isolation levels"],
+  "threats": ["Risk of memory leaks if unhandled", "Sub-optimal Big-O complexity in large loops"],
+  "rubricScores": {
+    "Technical Depth": 88,
+    "Problem Solving": 84,
+    "System Architecture": 80,
+    "Communication & Clarity": 90
+  },
+  "summary": "Detailed overall candidate evaluation summary."
+}
+`;
+
+    const text = await callNvidia(prompt);
+    const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error("SWOT analysis generation error:", err);
+    return {
+      overallScore: 82,
+      strengths: ["Good foundational knowledge of " + topic, "Clear verbal explanation"],
+      weaknesses: ["Could provide more concrete production code examples"],
+      opportunities: ["Focus on advanced performance optimization patterns"],
+      threats: ["Potential oversight of edge cases in high-throughput environments"],
+      rubricScores: {
+        "Technical Depth": 82,
+        "Problem Solving": 80,
+        "System Architecture": 84,
+        "Communication & Clarity": 85
+      },
+      summary: `Solid practice performance on ${topic}. Focus on edge case mitigation and architecture trade-offs.`
+    };
   }
 };

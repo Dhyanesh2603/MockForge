@@ -15,6 +15,9 @@ import ClashResultPage from "../pages/clash/ClashResultPage";
 import CreateCodingRoundPage from "../pages/coding/CreateCodingRoundPage";
 import CodingArenaPage from "../pages/coding/CodingArenaPage";
 
+import AdaptiveInterviewPage from "../pages/interviews/AdaptiveInterviewPage";
+import AnalyticsDashboardPage from "../pages/dashboard/AnalyticsDashboardPage";
+
 function AppRoutes() {
   return (
     <BrowserRouter>
@@ -28,6 +31,10 @@ function AppRoutes() {
         <Route path="/create-interview" element={<ProtectedRoute><CreateInterviewPage /></ProtectedRoute>} />
         <Route path="/interviews/:id" element={<ProtectedRoute><InterviewDetailsPage /></ProtectedRoute>} />
         <Route path="/results/:interviewId" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />
+
+        {/* Adaptive Practice & Analytics Routes (Protected) */}
+        <Route path="/adaptive" element={<ProtectedRoute><AdaptiveInterviewPage /></ProtectedRoute>} />
+        <Route path="/analytics" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
 
         {/* 1v1 Clash Routes (Protected) */}
         <Route path="/clash" element={<ProtectedRoute><ClashLobbyPage /></ProtectedRoute>} />
