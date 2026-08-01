@@ -2,7 +2,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
-import NavBar from "../../components/NavBar";
+import { useProctoring } from "../../hooks/useProctoring";
+import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
 
 /* ── icons ── */
 const Svg = (d,s=16)=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
@@ -152,6 +153,8 @@ export default function InterviewDetailsPage() {
     },700);
   };
 
+  const proctoring = useProctoring(started && !submitted);
+
   const doSubmit=useCallback(async()=>{
     if(submitting||submitted) return;
     try{
@@ -173,13 +176,20 @@ export default function InterviewDetailsPage() {
         })
       );
 
-      await api.post("/results/submit",{interviewId:id},{headers:{Authorization:`Bearer ${tok}`}});
+      await api.post("/results/submit", {
+        interviewId: id,
+        proctoringData: {
+          integrityScore: proctoring.integrityScore,
+          incidents: proctoring.incidents,
+        },
+      }, { headers: { Authorization: `Bearer ${tok}` } });
+
       setSubmitted(true);
       localStorage.removeItem(`mf-timer-${id}`);
       navigate(`/results/${id}`);
     }catch(e){console.error(e);alert("Submission failed. Please try again.");}
     finally{setSubmitting(false);}
-  },[user,id,submitting,submitted,navigate,answers]);
+  },[user,id,submitting,submitted,navigate,answers,proctoring.integrityScore,proctoring.incidents]);
 
   const toggleFlag=()=>setFlagged(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
   const toggleReview=()=>setReviewLater(s=>{const n=new Set(s);n.has(cur.id)?n.delete(cur.id):n.add(cur.id);return n;});
@@ -397,6 +407,16 @@ export default function InterviewDetailsPage() {
           </div>
         </div>
       </main>
+
+      {/* Proctoring Overlay */}
+      {started && !submitted && (
+        <ProctoringOverlay
+          videoRef={proctoring.videoRef}
+          cameraActive={proctoring.cameraActive}
+          integrityScore={proctoring.integrityScore}
+          warningToast={proctoring.warningToast}
+        />
+      )}
     </div>
   );
 }

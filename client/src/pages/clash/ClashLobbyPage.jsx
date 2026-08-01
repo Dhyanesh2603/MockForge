@@ -81,7 +81,7 @@ export default function ClashLobbyPage() {
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <span style={{ fontFamily: "monospace", fontSize: 11, color: "#f43f5e", textTransform: "uppercase", letterSpacing: ".15em", fontWeight: 700 }}>
-              ⚡ VERSION 2 · REAL-TIME MULTIPLAYER
+              ⚡ REAL-TIME MULTIPLAYER
             </span>
             <h1 style={{
               fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "clamp(2.2rem, 5vw, 3.2rem)",

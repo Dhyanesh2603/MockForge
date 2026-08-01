@@ -33,6 +33,7 @@ function buildFullResult(dbResult, answers) {
     questionCritiques: evalData.questionCritiques || [],
     skillGaps: evalData.skillGaps || [],
     strongTopics: evalData.strongTopics || [],
+    proctoringData: evalData.proctoringData || { integrityScore: 100, incidents: [] },
     answers: answers || [],
   };
 }
@@ -40,7 +41,7 @@ function buildFullResult(dbResult, answers) {
 export const submitInterview =
   async (req, res) => {
     try {
-      const { interviewId } = req.body;
+      const { interviewId, proctoringData } = req.body;
 
       const interview =
         await getInterviewById(
@@ -102,6 +103,7 @@ export const submitInterview =
         questionCritiques: evaluation.questionCritiques,
         skillGaps: evaluation.skillGaps,
         strongTopics: evaluation.strongTopics,
+        proctoringData: proctoringData || { integrityScore: 100, incidents: [] },
       };
 
       const savedResult =

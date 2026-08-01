@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
+import ProctoringAuditCard from "../../components/proctoring/ProctoringAuditCard";
 
 /* ── Score Ring ─────────────────────────────── */
 function ScoreRing({score,size=148}){
@@ -306,6 +307,7 @@ export default function ResultPage(){
                 <Sec icon="📍" title="Areas to Improve" content={result?.weaknesses} accent="red"/>
               </div>
               <Sec icon="🤖" title="AI Feedback" content={result?.feedback} accent="blue"/>
+              <ProctoringAuditCard proctoringData={result?.proctoringData} />
             </div>
           )}
 

@@ -3,13 +3,16 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getClashSocket, connectClashSocket } from "../../services/clashSocket";
 import api from "../../services/api";
-import NavBar from "../../components/NavBar";
+import { useProctoring } from "../../hooks/useProctoring";
+import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
 
 export default function ClashMatchPage() {
   const { roomCode } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const proctoring = useProctoring(true);
 
   const [questions, setQuestions] = useState(location.state?.questions || []);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -256,6 +259,13 @@ export default function ClashMatchPage() {
             )}
           </div>
         </main>
+
+        <ProctoringOverlay
+          videoRef={proctoring.videoRef}
+          cameraActive={proctoring.cameraActive}
+          integrityScore={proctoring.integrityScore}
+          warningToast={proctoring.warningToast}
+        />
       </div>
     </div>
   );
