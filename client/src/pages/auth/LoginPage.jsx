@@ -47,12 +47,16 @@ export default function LoginPage() {
       setError("");
       setInfoMessage("");
       const result = await signInWithPopup(auth, googleProvider);
-      const token = await result.user.getIdToken();
-      await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+      try {
+        const token = await result.user.getIdToken();
+        await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+      } catch (backendErr) {
+        console.warn("Backend login sync warning:", backendErr);
+      }
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      setError("Google authentication failed. Please try again.");
+      setError(err.message || "Google authentication failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -70,19 +74,24 @@ export default function LoginPage() {
         // --- SIGN IN MODE ---
         try {
           const userCredential = await signInWithEmailAndPassword(auth, email, password);
-          const token = await userCredential.user.getIdToken();
-          await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          try {
+            const token = await userCredential.user.getIdToken();
+            await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          } catch (backendErr) {
+            console.warn("Backend login sync warning:", backendErr);
+          }
           navigate("/dashboard");
         } catch (err) {
-          // If user not found on Sign In, auto-redirect to Create Account
-          if (
-            err.code === "auth/user-not-found" ||
-            err.code === "auth/invalid-credential"
-          ) {
-            setInfoMessage("No account found with these credentials. Redirecting to Create Account...");
+          console.error("Sign in error:", err.code, err.message);
+          if (err.code === "auth/user-not-found") {
+            setInfoMessage("No account found with this email. Redirecting to Create Account...");
             setTimeout(() => {
               switchMode("create");
             }, 1200);
+          } else if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password") {
+            setError("Invalid email or password. Please check your credentials or create a new account.");
+          } else if (err.code === "auth/invalid-email") {
+            setError("Please enter a valid email address.");
           } else {
             setError(err.message || "Sign-in failed. Please check your credentials.");
           }
@@ -94,16 +103,24 @@ export default function LoginPage() {
           if (name.trim()) {
             await updateProfile(userCredential.user, { displayName: name.trim() });
           }
-          const token = await userCredential.user.getIdToken();
-          await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          try {
+            const token = await userCredential.user.getIdToken();
+            await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          } catch (backendErr) {
+            console.warn("Backend login sync warning:", backendErr);
+          }
           navigate("/dashboard");
         } catch (err) {
-          // If email already exists on Create Account, auto-redirect to Sign In
+          console.error("Create account error:", err.code, err.message);
           if (err.code === "auth/email-already-in-use") {
             setInfoMessage("Account already exists with this email. Redirecting to Sign In...");
             setTimeout(() => {
               switchMode("signin");
             }, 1200);
+          } else if (err.code === "auth/weak-password") {
+            setError("Password should be at least 6 characters.");
+          } else if (err.code === "auth/invalid-email") {
+            setError("Please enter a valid email address.");
           } else {
             setError(err.message || "Could not create account. Please try again.");
           }
@@ -111,7 +128,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error(err);
-      setError("An unexpected error occurred.");
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
