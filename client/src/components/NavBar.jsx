@@ -3,6 +3,7 @@ import { useTheme } from "../context/ThemeContext";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
+import BrandLogo from "./BrandLogo";
 
 const Ico = (d,s=16) => <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>;
 
@@ -24,15 +25,8 @@ export default function NavBar({ showLogout = true, rightSlot = null }) {
       <div style={{maxWidth:1200,margin:"0 auto",padding:"0 24px",height:60,
                    display:"flex",alignItems:"center",justifyContent:"space-between",gap:16}}>
 
-        {/* Logo */}
-        <Link to={user ? "/dashboard" : "/"} style={{display:"flex",alignItems:"center",gap:10,textDecoration:"none",flexShrink:0}}>
-          <div className="bg-forge-gradient" style={{width:30,height:30,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <span style={{color:"#fff",fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:13}}>M</span>
-          </div>
-          <span style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:17,color:"var(--text)"}}>
-            Mock<span style={{color:"var(--forge)"}}>Forge</span>
-          </span>
-        </Link>
+        {/* Logo Emblem */}
+        <BrandLogo size={32} />
 
         {/* Right actions */}
         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
