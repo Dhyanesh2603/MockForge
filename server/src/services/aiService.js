@@ -457,88 +457,148 @@ export const evaluateCodeClashPair = async ({
   p1 = { userId: "p1", name: "Player 1", answers: [] },
   p2 = { userId: "p2", name: "Player 2", answers: [] },
 }) => {
+  const numQ = questions.length || 1;
+  const maxPerQuestion = Math.round(100 / numQ);
+
   try {
     const prompt = `
-You are a Principal Software Architect evaluating a 1v1 Live Code Clash competition between two developers.
-Topic: "${topic}" | Difficulty: "${difficulty}"
+You are a Principal Software Architect evaluating a 1v1 Live Code Clash competition.
+Topic: "${topic}" | Difficulty: "${difficulty}" | Total Questions: ${numQ}
+Each question is worth up to ${maxPerQuestion} marks. The total score MUST equal the sum of all individual question scores.
 
-Questions & Requirements:
-${questions.map((q, i) => `Q${i + 1}: ${q.question_text || q.title || "Coding Challenge"}`).join("\n")}
+STRICT SCORING RULES:
+1. If an answer is empty, skipped, gibberish (e.g. "asdf", "bullshit", "test", random letters, or non-code text), award EXACTLY 0 marks for that question.
+2. Evaluate valid code for correctness, time complexity (e.g., O(1), O(N), O(N^2)), space complexity, and edge cases.
+3. For each player, provide an array "questionScores" containing ${numQ} numbers (each 0 to ${maxPerQuestion}).
+4. The "score" field MUST equal the SUM of all values in "questionScores".
+5. The player with the higher total score wins. If total scores are equal, winnerUserId is null.
 
-Candidate 1 (${p1.name}) Code Submissions:
-${p1.answers.map((a, i) => `Q${i + 1} Answer:\n${a.answerText || "[No Code Submitted]"}`).join("\n---\n")}
+Questions:
+${questions.map((q, i) => `Q${i + 1}: ${q.title || q.question_text || "Coding Challenge"}`).join("\n")}
 
-Candidate 2 (${p2.name}) Code Submissions:
-${p2.answers.map((a, i) => `Q${i + 1} Answer:\n${a.answerText || "[No Code Submitted]"}`).join("\n---\n")}
+Candidate 1 (${p1.name}) Submissions:
+${questions.map((q, i) => {
+  const ans = p1.answers.find((a) => String(a.questionId || a.question_id) === String(q.id) || String(a.questionId) === String(i + 1));
+  return `Q${i + 1} (${q.title || "Challenge"}):\n${ans?.answerText || "[No Code Submitted]"}`;
+}).join("\n---\n")}
 
-Task:
-1. Analyze both code submissions for Correctness, Time Complexity (e.g. O(1), O(log N), O(N), O(N log N), O(N^2)), Space Complexity, and Code Quality.
-2. Award an overall score (0-100) for each candidate. The candidate with better time complexity and cleaner code correctness MUST score higher.
-3. Determine the winner ('${p1.userId}', '${p2.userId}', or null for a tie).
+Candidate 2 (${p2.name}) Submissions:
+${questions.map((q, i) => {
+  const ans = p2.answers.find((a) => String(a.questionId || a.question_id) === String(q.id) || String(a.questionId) === String(i + 1));
+  return `Q${i + 1} (${q.title || "Challenge"}):\n${ans?.answerText || "[No Code Submitted]"}`;
+}).join("\n---\n")}
 
-Return ONLY a valid JSON object matching this exact structure (NO markdown \`\`\`json):
+Return ONLY valid JSON (no markdown \`\`\`json):
 {
   "winnerUserId": "${p1.userId}" | "${p2.userId}" | null,
-  "winnerRationale": "1-2 sentence explanation of why the winner was chosen (e.g. Player 1 achieved O(N) time complexity vs Player 2 O(N^2)).",
+  "winnerRationale": "1-2 sentence explanation comparing total marks obtained (sum of individual question scores) and time complexities.",
   "player1": {
     "userId": "${p1.userId}",
-    "score": 85,
+    "questionScores": [${Array(numQ).fill(0).join(", ")}],
+    "score": 0,
     "timeComplexity": "O(N)",
     "spaceComplexity": "O(1)",
-    "correctnessScore": 90,
-    "critique": "Brief review of code quality, time complexity, and edge case safety."
+    "questionCritiques": ["<critique Q1>", "<critique Q2>"]
   },
   "player2": {
     "userId": "${p2.userId}",
-    "score": 70,
+    "questionScores": [${Array(numQ).fill(0).join(", ")}],
+    "score": 0,
     "timeComplexity": "O(N^2)",
     "spaceComplexity": "O(N)",
-    "correctnessScore": 75,
-    "critique": "Brief review of code quality, time complexity, and edge case safety."
+    "questionCritiques": ["<critique Q1>", "<critique Q2>"]
   }
 }
 `;
 
     const text = await callNvidia(prompt);
     const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    let result = null;
     try {
-      return JSON.parse(cleaned);
+      result = JSON.parse(cleaned);
     } catch (e) {
       const firstBrace = cleaned.indexOf("{");
       const lastBrace = cleaned.lastIndexOf("}");
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
+        result = JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
       }
-      throw e;
+    }
+
+    if (result && result.player1 && result.player2) {
+      // Enforce total score as exact sum of questionScores
+      if (Array.isArray(result.player1.questionScores)) {
+        result.player1.score = result.player1.questionScores.reduce((a, b) => a + (Number(b) || 0), 0);
+      }
+      if (Array.isArray(result.player2.questionScores)) {
+        result.player2.score = result.player2.questionScores.reduce((a, b) => a + (Number(b) || 0), 0);
+      }
+      // Re-evaluate winner based on sum of question scores
+      if (result.player1.score > result.player2.score) {
+        result.winnerUserId = p1.userId;
+      } else if (result.player2.score > result.player1.score) {
+        result.winnerUserId = p2.userId;
+      } else {
+        result.winnerUserId = null;
+      }
+      return result;
     }
   } catch (err) {
     console.error("Code Clash AI evaluation error:", err);
-    // Dynamic fallback evaluation
-    const p1CodeLen = p1.answers.reduce((acc, a) => acc + (a.answerText || "").length, 0);
-    const p2CodeLen = p2.answers.reduce((acc, a) => acc + (a.answerText || "").length, 0);
-    const p1Score = Math.min(95, Math.max(50, 60 + (p1CodeLen > 30 ? 25 : 0)));
-    const p2Score = Math.min(95, Math.max(50, 60 + (p2CodeLen > 30 ? 20 : 0)));
-    const winnerUserId = p1Score > p2Score ? p1.userId : p2Score > p1Score ? p2.userId : null;
-
-    return {
-      winnerUserId,
-      winnerRationale: winnerUserId ? "Winner achieved cleaner solution structure and better efficiency." : "Equal code quality performance.",
-      player1: {
-        userId: p1.userId,
-        score: p1Score,
-        timeComplexity: p1CodeLen > 60 ? "O(N)" : "O(N^2)",
-        spaceComplexity: "O(1)",
-        correctnessScore: p1Score,
-        critique: "Valid solution structure provided with acceptable algorithmic complexity.",
-      },
-      player2: {
-        userId: p2.userId,
-        score: p2Score,
-        timeComplexity: p2CodeLen > 60 ? "O(N)" : "O(N^2)",
-        spaceComplexity: "O(N)",
-        correctnessScore: p2Score,
-        critique: "Valid solution provided. Recommend optimizing nested loops.",
-      },
-    };
   }
+
+  // Fallback evaluation if AI fails or returns invalid structure
+  const evalPlayerFallback = (player) => {
+    let qScores = [];
+    let qCritiques = [];
+
+    questions.forEach((q, i) => {
+      const ansObj = player.answers.find((a) => String(a.questionId || a.question_id) === String(q.id) || String(a.questionId) === String(i + 1));
+      const code = (ansObj?.answerText || "").trim();
+
+      // Check if code is empty or gibberish (less than 12 chars or no programming constructs)
+      const isGibberish = !code || code.length < 12 || code.includes("// Write code here...") || !(/[a-zA-Z0-9_]+\s*\(|\=|\{|\;|return|function|def|class|const|let|var/.test(code));
+
+      if (isGibberish) {
+        qScores.push(0);
+        qCritiques.push(code ? "Invalid or non-executable code answer provided (0 marks)." : "Question skipped (0 marks).");
+      } else {
+        const hasReturn = code.includes("return") || code.includes("console.log") || code.includes("print") || code.includes("cout") || code.includes("System.out");
+        const qScore = hasReturn ? Math.round(maxPerQuestion * 0.85) : Math.round(maxPerQuestion * 0.5);
+        qScores.push(qScore);
+        qCritiques.push(`Valid code solution provided (${qScore}/${maxPerQuestion} marks).`);
+      }
+    });
+
+    const totalScore = qScores.reduce((sum, s) => sum + (Number(s) || 0), 0);
+    return { qScores, totalScore, qCritiques };
+  };
+
+  const p1Eval = evalPlayerFallback(p1);
+  const p2Eval = evalPlayerFallback(p2);
+  const winnerUserId = p1Eval.totalScore > p2Eval.totalScore ? p1.userId : p2Eval.totalScore > p1Eval.totalScore ? p2.userId : null;
+
+  return {
+    winnerUserId,
+    winnerRationale: winnerUserId
+      ? `${winnerUserId === p1.userId ? p1.name : p2.name} obtained higher total marks across all questions.`
+      : "Both candidates obtained equal total marks.",
+    player1: {
+      userId: p1.userId,
+      score: p1Eval.totalScore,
+      questionScores: p1Eval.qScores,
+      timeComplexity: p1Eval.totalScore > 0 ? "O(N)" : "N/A",
+      spaceComplexity: p1Eval.totalScore > 0 ? "O(1)" : "N/A",
+      correctnessScore: p1Eval.totalScore,
+      questionCritiques: p1Eval.qCritiques,
+    },
+    player2: {
+      userId: p2.userId,
+      score: p2Eval.totalScore,
+      questionScores: p2Eval.qScores,
+      timeComplexity: p2Eval.totalScore > 0 ? "O(N^2)" : "N/A",
+      spaceComplexity: p2Eval.totalScore > 0 ? "O(N)" : "N/A",
+      correctnessScore: p2Eval.totalScore,
+      questionCritiques: p2Eval.qCritiques,
+    },
+  };
 };
