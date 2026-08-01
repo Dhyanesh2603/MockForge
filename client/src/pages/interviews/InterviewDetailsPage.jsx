@@ -405,12 +405,11 @@ export default function InterviewDetailsPage() {
             {/* Voice Interviewer Controls (TTS & STT) */}
             <VoiceInterviewerControls
               questionText={cur?.question_text || ""}
-              onTranscript={(valOrFn) => {
-                if (typeof valOrFn === "function") {
-                  const newText = valOrFn(answers[cur?.id] || "");
-                  handleChange(newText);
-                } else {
-                  handleChange(valOrFn);
+              onTranscript={(spokenText) => {
+                if (typeof spokenText === "string" && spokenText.trim()) {
+                  const existing = answers[cur?.id] || "";
+                  const updated = existing.trim() ? `${existing.trim()} ${spokenText.trim()}` : spokenText.trim();
+                  handleChange(updated);
                 }
               }}
               currentAnswer={answers[cur?.id] || ""}

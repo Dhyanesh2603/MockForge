@@ -438,7 +438,11 @@ export default function AdaptiveInterviewPage() {
               {/* Hands-Free AI Voice Question Reader & Dictation Controls */}
               <VoiceInterviewerControls
                 questionText={currentQuestion}
-                onTranscript={(text) => setAnswerText((prev) => (prev ? prev + " " + text : text))}
+                onTranscript={(spokenText) => {
+                  if (typeof spokenText === "string" && spokenText.trim()) {
+                    setAnswerText((prev) => (prev && prev.trim() ? `${prev.trim()} ${spokenText.trim()}` : spokenText.trim()));
+                  }
+                }}
               />
             </div>
 

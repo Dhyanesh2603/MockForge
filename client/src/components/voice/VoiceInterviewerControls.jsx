@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 /**
  * VoiceInterviewerControls
  * - Reads question aloud via Web Speech Synthesis (TTS)
- * - Dictates candidate answer via Web Speech Recognition (STT)
+ * - Dictates candidate answer via Web Speech Recognition (STT) with auto-restart and clean text stream
  */
 export default function VoiceInterviewerControls({
   questionText = "",
@@ -17,8 +17,14 @@ export default function VoiceInterviewerControls({
   const [selectedVoice, setSelectedVoice] = useState(null);
 
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
   const onTranscriptRef = useRef(onTranscript);
   onTranscriptRef.current = onTranscript;
+
+  // Sync listening state to ref for auto-restart
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
 
   // Initialize Speech Synthesis Voices
   useEffect(() => {
@@ -47,7 +53,7 @@ export default function VoiceInterviewerControls({
     };
   }, []);
 
-  // Initialize & configure Speech Recognition
+  // Initialize Speech Recognition
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -65,44 +71,43 @@ export default function VoiceInterviewerControls({
 
       recognition.onstart = () => {
         setIsListening(true);
+        isListeningRef.current = true;
       };
 
       recognition.onresult = (event) => {
         let finalChunk = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          const resultItem = event.results[i][0];
-          const transcript = resultItem?.transcript || "";
-          const confidence = resultItem?.confidence;
-
+          const transcript = event.results[i][0]?.transcript || "";
           if (event.results[i].isFinal) {
-            // Filter out low confidence background noise / static artifacts
-            if (confidence === undefined || confidence >= 0.45) {
-              const cleaned = transcript.trim();
-              if (cleaned.length > 1 && !/^(um|uh|ah|hh|mm)$/i.test(cleaned)) {
-                finalChunk += transcript + " ";
-              }
-            }
+            finalChunk += transcript + " ";
           }
         }
 
-        if (finalChunk && onTranscriptRef.current) {
-          const textToAppend = finalChunk.trim();
-          onTranscriptRef.current((prevText = "") => {
-            const trimmedPrev = (prevText || "").trim();
-            return trimmedPrev ? `${trimmedPrev} ${textToAppend}` : textToAppend;
-          });
+        if (finalChunk.trim() && onTranscriptRef.current) {
+          onTranscriptRef.current(finalChunk.trim());
         }
       };
 
       recognition.onerror = (event) => {
-        console.warn("Speech recognition notice:", event.error);
-        if (event.error !== "no-speech") {
+        console.warn("Speech recognition event notice:", event.error);
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
           setIsListening(false);
+          isListeningRef.current = false;
         }
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // Auto-restart if user has not explicitly stopped listening
+        if (isListeningRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {
+            setIsListening(false);
+            isListeningRef.current = false;
+          }
+        } else {
+          setIsListening(false);
+        }
       };
 
       recognitionRef.current = recognition;
@@ -111,6 +116,7 @@ export default function VoiceInterviewerControls({
     }
 
     return () => {
+      isListeningRef.current = false;
       if (recognitionRef.current) {
         try {
           recognitionRef.current.stop();
@@ -123,16 +129,18 @@ export default function VoiceInterviewerControls({
   const speakQuestion = () => {
     if (!("speechSynthesis" in window) || !questionText) return;
 
-    window.speechSynthesis.cancel();
-
-    if (isSpeaking) {
+    if (isSpeaking || window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
       setIsSpeaking(false);
       return;
     }
 
+    window.speechSynthesis.cancel();
+
     const utterance = new SpeechSynthesisUtterance(questionText);
     utterance.rate = 0.95;
     utterance.pitch = 1.0;
+    utterance.lang = "en-US";
 
     if (selectedVoice) {
       const vObj = voices.find((v) => v.name === selectedVoice);
@@ -156,46 +164,32 @@ export default function VoiceInterviewerControls({
       return;
     }
 
-    if (!recognitionRef.current) {
-      try {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = "en-US";
-        recognition.onstart = () => setIsListening(true);
-        recognition.onresult = (event) => {
-          let finalChunk = "";
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalChunk += event.results[i][0].transcript + " ";
-            }
-          }
-          if (finalChunk && onTranscriptRef.current) {
-            const textToAppend = finalChunk.trim();
-            onTranscriptRef.current((prevText = "") => {
-              const trimmedPrev = (prevText || "").trim();
-              return trimmedPrev ? `${trimmedPrev} ${textToAppend}` : textToAppend;
-            });
-          }
-        };
-        recognition.onerror = () => setIsListening(false);
-        recognition.onend = () => setIsListening(false);
-        recognitionRef.current = recognition;
-      } catch (e) {}
-    }
-
-    if (isListening) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {}
+    if (isListening || isListeningRef.current) {
+      isListeningRef.current = false;
       setIsListening(false);
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
     } else {
-      try {
-        recognitionRef.current.start();
-        setIsListening(true);
-      } catch (err) {
-        console.warn("STT start issue:", err);
-        setIsListening(false);
+      if (recognitionRef.current) {
+        try {
+          isListeningRef.current = true;
+          setIsListening(true);
+          recognitionRef.current.start();
+        } catch (err) {
+          console.warn("STT start retry:", err);
+          try {
+            recognitionRef.current.stop();
+            setTimeout(() => {
+              recognitionRef.current.start();
+            }, 150);
+          } catch (e2) {
+            setIsListening(false);
+            isListeningRef.current = false;
+          }
+        }
       }
     }
   };
