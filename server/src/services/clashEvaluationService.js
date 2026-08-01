@@ -5,32 +5,45 @@ export const evaluateClashMatch = async ({
   role,
   techStack,
   difficulty,
-  questions,
-  participants,
-  answers,
+  questions = [],
+  participants = [],
+  answers = [],
 }) => {
-  if (participants.length === 0) {
+  if (!participants || participants.length === 0) {
     throw new Error("No participants in clash match");
   }
 
+  // Normalize questions array so every item is guaranteed to have `id` and `question_text`
+  const normalizedQuestions = (questions || []).map((q, idx) => {
+    if (typeof q === "string") {
+      return { id: String(idx + 1), question_text: q };
+    }
+    return {
+      id: String(q.id || q.questionId || idx + 1),
+      question_text: q.question_text || q.questionText || q.text || `Question ${idx + 1}`,
+    };
+  });
+
   const evalPromises = participants.map((p) => {
-    const userAnswers = answers.filter((a) => String(a.user_id) === String(p.user_id));
-    // Map question_id to match question.id format
-    const formattedUserAnswers = userAnswers.map((a) => ({
-      question_id: a.question_id,
-      answer_text: a.answer_text,
+    const userAnswers = answers.filter(
+      (a) => String(a.user_id || a.userId) === String(p.user_id || p.userId)
+    );
+
+    const formattedUserAnswers = userAnswers.map((a, idx) => ({
+      question_id: String(a.question_id || a.questionId || (idx + 1)),
+      answer_text: a.answer_text || a.answerText || "",
     }));
 
     return evaluateInterview({
       role,
       techStack,
       difficulty,
-      questions,
+      questions: normalizedQuestions,
       answers: formattedUserAnswers,
     }).then((evalRes) => ({
-      userId: p.user_id,
-      userName: p.user_name,
-      userPicture: p.user_picture,
+      userId: p.user_id || p.userId,
+      userName: p.user_name || p.userName || "Candidate",
+      userPicture: p.user_picture || p.userPicture || "",
       evaluation: evalRes,
     }));
   });
@@ -58,6 +71,6 @@ export const evaluateClashMatch = async ({
     roomCode,
     winnerUserId,
     players: playerEvaluations,
-    questions,
+    questions: normalizedQuestions,
   };
 };
