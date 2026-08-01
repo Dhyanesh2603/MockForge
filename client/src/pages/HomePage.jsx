@@ -207,7 +207,7 @@ export default function HomePage() {
           {/* Hero CTAs */}
           <div className="reveal d2" style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 60 }}>
             <Link
-              to="/login"
+              to="/adaptive"
               className="bg-forge-gradient btn-press"
               style={{
                 padding: "15px 34px",
@@ -219,7 +219,7 @@ export default function HomePage() {
                 boxShadow: "0 12px 36px rgba(99,102,241,0.4)",
               }}
             >
-              Launch AI Mock Interview
+              Adaptive Practice & SWOT
             </Link>
 
             <Link
@@ -336,11 +336,12 @@ export default function HomePage() {
           {/* Tab Controls */}
           <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 32, flexWrap: "wrap" }}>
             {[
+              ["adaptive", "Adaptive Practice"],
+              ["swot", "SWOT & Role Rubrics"],
               ["interview", "AI Voice Interviews"],
               ["proctoring", "Forge Guard Proctoring"],
               ["coding", "AI Coding Arena"],
               ["clash", "1v1 Code Clash"],
-              ["analytics", "Speech Analytics"],
             ].map(([id, label]) => (
               <button
                 key={id}
@@ -365,6 +366,74 @@ export default function HomePage() {
 
           {/* Active Tab Content Card */}
           <div className="glass reveal-scale" style={{ borderRadius: 24, padding: 36, border: "1px solid var(--border)" }}>
+            {activeDemoTab === "adaptive" && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "center" }}>
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--forge)", fontFamily: "monospace" }}>01. ADAPTIVE AI PRACTICE</span>
+                  <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 800, margin: "8px 0 14px", color: "var(--text)" }}>
+                    Dynamic Difficulty Adaptation
+                  </h3>
+                  <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.7, margin: "0 0 20px" }}>
+                    Enter ANY custom topic. As you answer, the AI analyzes your response depth. Superficial answers trigger clarifying foundational questions, while detailed answers escalate difficulty to Advanced or Mastery.
+                  </p>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700 }}>
+                      ✓ Any Custom Subject
+                    </span>
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
+                      ✓ Real-Time Question Scaling
+                    </span>
+                  </div>
+                </div>
+                <div style={{ padding: 24, borderRadius: 18, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--forge)", fontFamily: "monospace" }}>PRACTICE MODE</span>
+                    <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700 }}>
+                      DIFFICULTY: ADVANCED
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 13, color: "var(--text)", fontWeight: 700, margin: "0 0 12px" }}>
+                    "How do you handle distributed deadlock detection and race conditions in high-throughput database clusters?"
+                  </p>
+                  <span style={{ fontSize: 11, color: "var(--accent-cyan)", fontFamily: "monospace" }}>
+                    AI Adaptation: Escalated based on strong answer to Q1.
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {activeDemoTab === "swot" && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "center" }}>
+                <div>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#10b981", fontFamily: "monospace" }}>02. SWOT & ROLE RUBRICS</span>
+                  <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 24, fontWeight: 800, margin: "8px 0 14px", color: "var(--text)" }}>
+                    SWOT Analysis & Role-Specific Rubrics
+                  </h3>
+                  <p style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.7, margin: "0 0 20px" }}>
+                    Evaluates your performance against specific role rubrics (Frontend, Backend, Data Science, DevOps). Generates a complete SWOT Analysis (Strengths, Weaknesses, Opportunities, Threats) at session end.
+                  </p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
+                      ✓ Strengths & Weaknesses
+                    </span>
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(6,182,212,0.12)", color: "var(--accent-cyan)", fontWeight: 700 }}>
+                      ✓ Production Risks (Threats)
+                    </span>
+                  </div>
+                </div>
+                <div style={{ padding: 20, borderRadius: 18, background: "var(--bg2)", border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div style={{ padding: 12, borderRadius: 12, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                    <strong style={{ fontSize: 11, color: "#10b981", display: "block" }}>STRENGTHS</strong>
+                    <span style={{ fontSize: 12, color: "var(--text)" }}>Clear architecture rationale</span>
+                  </div>
+                  <div style={{ padding: 12, borderRadius: 12, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                    <strong style={{ fontSize: 11, color: "var(--red)", display: "block" }}>WEAKNESSES</strong>
+                    <span style={{ fontSize: 12, color: "var(--text)" }}>Memory leak edge cases</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeDemoTab === "interview" && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "center" }}>
                 <div>
