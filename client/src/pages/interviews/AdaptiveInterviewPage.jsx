@@ -27,11 +27,13 @@ export default function AdaptiveInterviewPage() {
   const [answerText, setAnswerText] = useState("");
   const [history, setHistory] = useState([]);
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
 
   // Completion state
   const [isFinished, setIsFinished] = useState(false);
   const [swotReport, setSwotReport] = useState(null);
   const [isEvaluatingSwot, setIsEvaluatingSwot] = useState(false);
+  const [error, setError] = useState("");
 
   // Start Adaptive Session
   const handleStartSession = async (e) => {
@@ -62,12 +64,10 @@ export default function AdaptiveInterviewPage() {
     }
   };
 
-  const [error, setError] = useState("");
-
   // Submit Answer & Fetch Next Adapted Question
   const handleNextAdaptiveQuestion = async () => {
     if (!answerText.trim()) {
-      setError("Please provide your answer before adapting to the next question.");
+      setError("Please provide your answer before submitting.");
       return;
     }
 
@@ -253,7 +253,26 @@ export default function AdaptiveInterviewPage() {
                 </h3>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                {history.length > 0 && (
+                  <button
+                    onClick={() => setShowHistoryDrawer(true)}
+                    className="btn-press"
+                    style={{
+                      padding: "8px 16px",
+                      borderRadius: 10,
+                      background: "rgba(99,102,241,0.12)",
+                      border: "1px solid rgba(99,102,241,0.3)",
+                      color: "var(--forge)",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Previous Q&A ({history.length})
+                  </button>
+                )}
+
                 <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 800, fontFamily: "monospace" }}>
                   Difficulty: {currentDifficulty}
                 </span>
@@ -335,7 +354,7 @@ export default function AdaptiveInterviewPage() {
                   disabled={isLoadingNext}
                   className="bg-forge-gradient btn-press"
                   style={{
-                    padding: "12px 28px",
+                    padding: "12px 32px",
                     borderRadius: 12,
                     border: "none",
                     color: "#fff",
@@ -345,11 +364,101 @@ export default function AdaptiveInterviewPage() {
                     boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
                   }}
                 >
-                  {isLoadingNext ? "Adapting Question..." : "Submit & Adapt Next Question →"}
+                  {isLoadingNext ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </div>
 
+          </div>
+        )}
+
+
+        {/* ── COLLAPSIBLE Q&A HISTORY SIDE DRAWER ── */}
+        {showHistoryDrawer && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 1000,
+              background: "rgba(0,0,0,0.5)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+            onClick={() => setShowHistoryDrawer(false)}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="glass afi"
+              style={{
+                width: "100%",
+                maxWidth: 440,
+                height: "100%",
+                background: "var(--surface)",
+                borderLeft: "1px solid var(--border)",
+                padding: 28,
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: "-12px 0 40px rgba(0,0,0,0.3)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+                    Previous Q&A History
+                  </h3>
+                  <span style={{ fontSize: 11, color: "var(--text3)" }}>
+                    {history.length} Questions Answered
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setShowHistoryDrawer(false)}
+                  className="btn-press"
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    border: "1px solid var(--border)",
+                    background: "var(--bg2)",
+                    color: "var(--text)",
+                    fontSize: 16,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 16, paddingRight: 4 }}>
+                {history.map((item, idx) => (
+                  <div key={idx} style={{ padding: 16, borderRadius: 14, background: "var(--bg2)", border: "1px solid var(--border)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--forge)", fontFamily: "monospace" }}>
+                        QUESTION #{idx + 1}
+                      </span>
+                      <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700 }}>
+                        {item.difficulty}
+                      </span>
+                    </div>
+
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", margin: "0 0 10px", lineHeight: 1.5 }}>
+                      "{item.question}"
+                    </p>
+
+                    <div style={{ padding: 12, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
+                      <strong style={{ display: "block", marginBottom: 4, color: "var(--accent-cyan)", fontSize: 11 }}>
+                        Your Response:
+                      </strong>
+                      {item.answer}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
