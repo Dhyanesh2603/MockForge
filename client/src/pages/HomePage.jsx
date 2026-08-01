@@ -164,7 +164,7 @@ export default function HomePage() {
                 boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
               }}
             >
-              Create Account 🚀
+              Create Account
             </Link>
           </div>
         </div>
@@ -219,7 +219,7 @@ export default function HomePage() {
                 boxShadow: "0 12px 36px rgba(99,102,241,0.4)",
               }}
             >
-              🚀 Launch AI Mock Interview
+              Launch AI Mock Interview
             </Link>
 
             <Link
@@ -236,7 +236,7 @@ export default function HomePage() {
                 textDecoration: "none",
               }}
             >
-              💻 Practice Coding Arena
+              Practice Coding Arena
             </Link>
 
             <Link
@@ -253,7 +253,7 @@ export default function HomePage() {
                 textDecoration: "none",
               }}
             >
-              ⚔️ 1v1 Code Clash
+              1v1 Code Clash
             </Link>
           </div>
 
@@ -269,7 +269,7 @@ export default function HomePage() {
                 MockForge Session Terminal — Live AI Voice & Proctoring Engine
               </span>
               <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700, fontFamily: "monospace" }}>
-                🛡️ FORGE GUARD ACTIVE
+                FORGE GUARD ACTIVE
               </span>
             </div>
 
@@ -283,8 +283,8 @@ export default function HomePage() {
                   "How does the browser Event Loop prioritize microtasks vs macrotasks during hydration?"
                 </h3>
                 <div style={{ padding: "12px 16px", borderRadius: 12, background: "var(--bg2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <span style={{ fontSize: 13, color: "var(--forge)", fontWeight: 600 }}>📢 Read Question Aloud (AI Voice)</span>
-                  <span style={{ fontSize: 13, color: "var(--red)", fontWeight: 700 }}>🎙️ Listening... (Voice Answer Active)</span>
+                  <span style={{ fontSize: 13, color: "var(--forge)", fontWeight: 600 }}>Read Question Aloud (AI Voice)</span>
+                  <span style={{ fontSize: 13, color: "var(--red)", fontWeight: 700 }}>Listening... (Voice Answer Active)</span>
                 </div>
                 <div style={{ padding: 14, borderRadius: 12, background: "var(--bg)", border: "1px solid var(--border)", fontFamily: "monospace", fontSize: 13, color: "var(--text2)", minHeight: 80 }}>
                   "Microtasks like Promises and queueMicrotask execute immediately after the current task..."
@@ -301,8 +301,8 @@ export default function HomePage() {
                     10/10 WARN
                   </span>
                 </div>
-                <div style={{ height: 110, borderRadius: 12, background: "#000", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 32 }}>👁️</span>
+                <div style={{ height: 110, borderRadius: 12, background: "var(--bg3)", position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "var(--forge)", fontFamily: "monospace" }}>CAMERA FEED</span>
                   <span style={{ position: "absolute", top: 8, left: 8, fontSize: 9, padding: "2px 6px", borderRadius: 999, background: "rgba(239,68,68,0.9)", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
                     LIVE IRIS
                   </span>
@@ -336,11 +336,11 @@ export default function HomePage() {
           {/* Tab Controls */}
           <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 32, flexWrap: "wrap" }}>
             {[
-              ["interview", "🎙️ AI Voice Interviews"],
-              ["proctoring", "🛡️ Forge Guard Proctoring"],
-              ["coding", "💻 AI Coding Arena"],
-              ["clash", "⚔️ 1v1 Code Clash"],
-              ["analytics", "📊 Speech Analytics"],
+              ["interview", "AI Voice Interviews"],
+              ["proctoring", "Forge Guard Proctoring"],
+              ["coding", "AI Coding Arena"],
+              ["clash", "1v1 Code Clash"],
+              ["analytics", "Speech Analytics"],
             ].map(([id, label]) => (
               <button
                 key={id}

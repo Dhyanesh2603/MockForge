@@ -171,8 +171,8 @@ export default function CodeCompilerSandbox({
         </select>
       </div>
 
-      {/* Code Input Textarea (Adapts dynamically to theme & auto-scrolls) */}
-      <div style={{ flex: 1, minHeight: 280, position: "relative", display: "flex" }}>
+      {/* Code Input Textarea (Expands to fill 100% height of editor frame) */}
+      <div style={{ flex: 1, minHeight: 300, position: "relative", display: "flex", flexDirection: "column" }}>
         <textarea
           ref={textareaRef}
           value={code}
@@ -180,6 +180,7 @@ export default function CodeCompilerSandbox({
           placeholder="Write your solution code here..."
           spellCheck={false}
           style={{
+            flex: 1,
             width: "100%",
             height: "100%",
             boxSizing: "border-box",
