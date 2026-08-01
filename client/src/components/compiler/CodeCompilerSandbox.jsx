@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 
 /**
  * CodeCompilerSandbox — In-Browser Multi-Language Sandbox
  * Features:
  * - Multi-language execution (JS, Python, C++, Java)
+ * - Light & Dark theme color adaptation
  * - Auto-scrolling editor as user types
  * - Bottom frame bar action controls (Run Code & Submit Code)
  */
@@ -119,10 +120,10 @@ export default function CodeCompilerSandbox({
         flexDirection: "column",
         height: "100%",
         borderRadius: 20,
-        background: "#090d16",
+        background: "var(--bg2)",
         border: "1px solid var(--border)",
         overflow: "hidden",
-        boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
+        boxShadow: "0 16px 40px rgba(0,0,0,0.15)",
       }}
     >
       {/* Top Header Bar Controls */}
@@ -132,12 +133,15 @@ export default function CodeCompilerSandbox({
           alignItems: "center",
           justifyContent: "space-between",
           padding: "10px 18px",
-          background: "#0f172a",
+          background: "var(--surface)",
           borderBottom: "1px solid var(--border)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }}>💻</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--forge)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
             Code Editor Frame
           </span>
@@ -150,7 +154,7 @@ export default function CodeCompilerSandbox({
           style={{
             padding: "5px 12px",
             borderRadius: 8,
-            background: "#1e293b",
+            background: "var(--bg3)",
             border: "1px solid var(--border)",
             color: "var(--accent-cyan)",
             fontSize: 12,
@@ -167,7 +171,7 @@ export default function CodeCompilerSandbox({
         </select>
       </div>
 
-      {/* Code Input Textarea (Auto-scrolls as user types to bottom) */}
+      {/* Code Input Textarea (Adapts dynamically to theme & auto-scrolls) */}
       <div style={{ flex: 1, minHeight: 280, position: "relative", display: "flex" }}>
         <textarea
           ref={textareaRef}
@@ -179,8 +183,8 @@ export default function CodeCompilerSandbox({
             width: "100%",
             height: "100%",
             boxSizing: "border-box",
-            background: "#090d16",
-            color: "#f8fafc",
+            background: "var(--bg)",
+            color: "var(--text)",
             fontFamily: "Consolas, Monaco, 'JetBrains Mono', monospace",
             fontSize: 13,
             lineHeight: 1.65,
@@ -197,7 +201,7 @@ export default function CodeCompilerSandbox({
       <div
         style={{
           height: 110,
-          background: "#050811",
+          background: "var(--bg3)",
           borderTop: "1px solid var(--border)",
           padding: "10px 16px",
           overflowY: "auto",
@@ -208,8 +212,8 @@ export default function CodeCompilerSandbox({
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
           <span style={{ color: "var(--text3)", fontWeight: 700, fontSize: 10 }}>CONSOLE OUTPUT</span>
           {testResults && (
-            <span style={{ color: testResults.passed ? "#10b981" : "#ef4444", fontWeight: 800, fontSize: 10 }}>
-              {testResults.passed ? "✓ COMPILED CLEANLY" : "ERROR"}
+            <span style={{ color: testResults.passed ? "var(--green)" : "var(--red)", fontWeight: 800, fontSize: 10 }}>
+              {testResults.passed ? "COMPILED CLEANLY" : "ERROR"}
             </span>
           )}
         </div>
@@ -226,7 +230,7 @@ export default function CodeCompilerSandbox({
           justifyContent: "flex-end",
           gap: 10,
           padding: "10px 18px",
-          background: "#0f172a",
+          background: "var(--surface)",
           borderTop: "1px solid var(--border)",
         }}
       >
@@ -249,7 +253,7 @@ export default function CodeCompilerSandbox({
             gap: 6,
           }}
         >
-          ▶ {isExecuting ? "Executing..." : "Run Code"}
+          {isExecuting ? "Executing..." : "Run Code"}
         </button>
 
         <button
@@ -267,7 +271,7 @@ export default function CodeCompilerSandbox({
             boxShadow: "0 4px 14px rgba(99,102,241,0.35)",
           }}
         >
-          ✓ Submit Code
+          Submit Code
         </button>
       </div>
     </div>

@@ -58,13 +58,13 @@ export default function ProctoringOverlay({
             maxWidth: "90vw",
           }}
         >
-          <span style={{ fontSize: 18 }}>
-            {warningToast.type === "DISQUALIFIED" ? "🚫" : "⚠️"}
+          <span style={{ fontSize: 13, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: "rgba(0,0,0,0.2)" }}>
+            {warningToast.type === "DISQUALIFIED" ? "DISQUALIFIED" : "WARNING"}
           </span>
           <span>
             {warningToast.type === "DISQUALIFIED"
               ? warningToast.detail
-              : `WARNING ${warningCount}/${maxWarnings}: ${warningToast.detail}`}
+              : `${warningCount}/${maxWarnings}: ${warningToast.detail}`}
           </span>
         </div>
       )}
@@ -98,8 +98,7 @@ export default function ProctoringOverlay({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 12 }}>🛡️</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text2)", fontFamily: "monospace" }}>
+            <span style={{ fontSize: 10, fontWeight: 800, color: "var(--text2)", fontFamily: "monospace" }}>
               FORGE GUARD
             </span>
           </div>

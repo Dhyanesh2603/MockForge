@@ -72,7 +72,7 @@ export default function CodingArenaPage() {
       const hiddenCount = curProblem.hiddenTestCases?.length || curProblem.hiddenTestCasesCount || 3;
       const hiddenResults = Array.from({ length: hiddenCount }, (_, idx) => ({
         id: sampleTestCases.length + idx + 1,
-        label: `🔒 Hidden Test Case #${idx + 1}`,
+        label: `Hidden Test Case #${idx + 1}`,
         input: "[PROTECTED TEST CASE INPUT]",
         expected: "[PROTECTED EXPECTED OUTPUT]",
         passed: true,
@@ -224,10 +224,10 @@ export default function CodingArenaPage() {
           <div className="glass" style={{ borderRadius: 20, padding: 22, border: "1px solid var(--border)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
-                📋 Sample Test Cases
+                Sample Test Cases
               </h4>
               <span style={{ fontSize: 11, color: "var(--text3)", fontFamily: "monospace" }}>
-                🔒 3 Hidden Test Cases Active
+                3 Hidden Test Cases Active
               </span>
             </div>
 
