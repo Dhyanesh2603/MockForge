@@ -37,10 +37,38 @@ export function useProctoring(enabled = true) {
 
     async function initMedia() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 320 }, height: { ideal: 240 }, frameRate: { ideal: 15 } },
-          audio: true,
-        });
+        let stream;
+        let hasVideo = false;
+        let hasAudio = false;
+
+        // Try combined video + audio first
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 320 }, height: { ideal: 240 }, frameRate: { ideal: 15 } },
+            audio: true,
+          });
+          hasVideo = stream.getVideoTracks().length > 0;
+          hasAudio = stream.getAudioTracks().length > 0;
+        } catch (combinedErr) {
+          console.warn("Combined media failed, attempting Video-Only fallback...", combinedErr.message);
+          try {
+            // Video-Only Fallback (solves defective laptop mic issue)
+            stream = await navigator.mediaDevices.getUserMedia({
+              video: { width: { ideal: 320 }, height: { ideal: 240 }, frameRate: { ideal: 15 } },
+            });
+            hasVideo = stream.getVideoTracks().length > 0;
+            hasAudio = false;
+          } catch (vidErr) {
+            console.warn("Video-only media failed, attempting Audio-Only fallback...", vidErr.message);
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              hasVideo = false;
+              hasAudio = stream.getAudioTracks().length > 0;
+            } catch (audErr) {
+              throw combinedErr;
+            }
+          }
+        }
 
         if (!isMounted) {
           stream.getTracks().forEach((t) => t.stop());
@@ -48,52 +76,53 @@ export function useProctoring(enabled = true) {
         }
 
         streamRef.current = stream;
-        setCameraActive(true);
-        setMicActive(true);
+        setCameraActive(hasVideo);
+        setMicActive(hasAudio);
 
-        if (videoRef.current) {
+        if (videoRef.current && hasVideo) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
         }
 
-        // Web Audio API noise monitoring
-        try {
-          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          const source = audioCtx.createMediaStreamSource(stream);
-          const analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 256;
-          source.connect(analyser);
+        // Web Audio API noise monitoring if audio track exists
+        if (hasAudio) {
+          try {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
 
-          audioCtxRef.current = audioCtx;
-          analyserRef.current = analyser;
+            audioCtxRef.current = audioCtx;
+            analyserRef.current = analyser;
 
-          // Poll audio level every 1 second
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
-          let highVolumeCount = 0;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            let highVolumeCount = 0;
 
-          const audioInterval = setInterval(() => {
-            if (!analyserRef.current) return;
-            analyserRef.current.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) {
-              sum += dataArray[i];
-            }
-            const average = sum / dataArray.length;
+            const audioInterval = setInterval(() => {
+              if (!analyserRef.current) return;
+              analyserRef.current.getByteFrequencyData(dataArray);
+              let sum = 0;
+              for (let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+              }
+              const average = sum / dataArray.length;
 
-            // Threshold for loud speech / background noise spike
-            if (average > 65) {
-              highVolumeCount++;
-              if (highVolumeCount >= 3) {
-                addIncident("AUDIO_ACTIVITY", "Unusual speech/noise activity detected.", 4);
+              if (average > 65) {
+                highVolumeCount++;
+                if (highVolumeCount >= 3) {
+                  addIncident("AUDIO_ACTIVITY", "Unusual speech/noise activity detected.", 4);
+                  highVolumeCount = 0;
+                }
+              } else {
                 highVolumeCount = 0;
               }
-            } else {
-              highVolumeCount = 0;
-            }
-          }, 1000);
+            }, 1000);
 
-          return () => clearInterval(audioInterval);
-        } catch (audioErr) {
-          console.warn("AudioContext setup failed:", audioErr);
+            return () => clearInterval(audioInterval);
+          } catch (audioErr) {
+            console.warn("AudioContext setup failed:", audioErr);
+          }
         }
       } catch (err) {
         console.warn("Proctoring Media access denied:", err.message);
@@ -117,6 +146,16 @@ export function useProctoring(enabled = true) {
       }
     };
   }, [enabled, addIncident]);
+
+  // Keep videoRef.srcObject bound whenever camera becomes active or DOM renders videoRef
+  useEffect(() => {
+    if (cameraActive && streamRef.current && videoRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [cameraActive]);
 
   // 2. Tab Switch & Window Focus Detection
   useEffect(() => {
