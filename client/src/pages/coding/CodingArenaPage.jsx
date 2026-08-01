@@ -569,10 +569,10 @@ export default function CodingArenaPage() {
             </div>
 
             <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
-              Are you sure you want to end the test?
+              Are you sure you want to submit?
             </h3>
-            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>
-              This will evaluate your code solutions for all <strong>{problems.length} questions</strong> against <strong>4 hidden test cases per question</strong> (evaluated out of <strong>{problems.length * 4} total marks</strong>).
+            <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text2)", lineHeight: 1.6 }}>
+              Do you want to finish and submit your coding test?
             </p>
 
             <div style={{ display: "flex", gap: 12 }}>
@@ -591,7 +591,7 @@ export default function CodingArenaPage() {
                   cursor: "pointer",
                 }}
               >
-                Continue Coding
+                Cancel
               </button>
 
               <button
@@ -609,7 +609,7 @@ export default function CodingArenaPage() {
                   boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
                 }}
               >
-                Yes, Submit & View Report
+                Submit
               </button>
             </div>
           </div>
