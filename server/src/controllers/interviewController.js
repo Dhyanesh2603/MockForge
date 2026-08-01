@@ -1,6 +1,6 @@
 import { createInterview, getUserInterviews } from "../repositories/interviewRepository.js";
 import { saveInterviewQuestions } from "../repositories/questionRepository.js";
-import { generateInterviewQuestions } from "../services/geminiService.js";
+import { generateInterviewQuestions } from "../services/aiService.js";
 import { getInterviewDetails } from "./interviewDetailsController.js";
 
 export const createInterviewSession = async (req, res) => {

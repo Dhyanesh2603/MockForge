@@ -1,4 +1,4 @@
-import { generateInterviewQuestions } from "../services/geminiService.js";
+import { generateInterviewQuestions } from "../services/aiService.js";
 import {
   createClashRoomInDb,
   saveClashQuestions,

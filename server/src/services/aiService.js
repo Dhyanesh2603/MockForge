@@ -408,7 +408,7 @@ Return ONLY a valid JSON object matching this schema (do NOT copy example values
   "summary": "<2-3 sentence personalized evaluation summary tailored to the candidate's performance on topic>"
 }`;
 
-    const text = await callNvidia(prompt, 2048);
+    const text = await callNvidia(prompt);
     const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
     return JSON.parse(cleaned);
   } catch (err) {
