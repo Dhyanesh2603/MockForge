@@ -1,8 +1,13 @@
-import { signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../../services/firebase";
-import { useNavigate, Link } from "react-router-dom";
-import api from "../../services/api";
 import { useState } from "react";
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { auth, googleProvider } from "../../services/firebase";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import api from "../../services/api";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
@@ -15,78 +20,358 @@ const GoogleIcon = () => (
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Auth mode: "signin" or "create"
+  const initialMode = searchParams.get("mode") === "create" ? "create" : "signin";
+  const [mode, setMode] = useState(initialMode);
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
 
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setError("");
+    setInfoMessage("");
+    setSearchParams({ mode: newMode });
+  };
+
+  // Google OAuth Login
   const handleGoogleLogin = async () => {
     try {
-      setLoading(true); setError("");
+      setLoading(true);
+      setError("");
+      setInfoMessage("");
       const result = await signInWithPopup(auth, googleProvider);
       const token = await result.user.getIdToken();
       await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      setError("Sign-in failed. Please try again.");
-    } finally { setLoading(false); }
+      setError("Google authentication failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Form Submit Handler (Email & Password)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setInfoMessage("");
+
+    try {
+      if (mode === "signin") {
+        // --- SIGN IN MODE ---
+        try {
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const token = await userCredential.user.getIdToken();
+          await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          navigate("/dashboard");
+        } catch (err) {
+          // If user not found on Sign In, auto-redirect to Create Account
+          if (
+            err.code === "auth/user-not-found" ||
+            err.code === "auth/invalid-credential"
+          ) {
+            setInfoMessage("No account found with these credentials. Redirecting to Create Account...");
+            setTimeout(() => {
+              switchMode("create");
+            }, 1200);
+          } else {
+            setError(err.message || "Sign-in failed. Please check your credentials.");
+          }
+        }
+      } else {
+        // --- CREATE ACCOUNT MODE ---
+        try {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          if (name.trim()) {
+            await updateProfile(userCredential.user, { displayName: name.trim() });
+          }
+          const token = await userCredential.user.getIdToken();
+          await api.post("/auth/login", {}, { headers: { Authorization: `Bearer ${token}` } });
+          navigate("/dashboard");
+        } catch (err) {
+          // If email already exists on Create Account, auto-redirect to Sign In
+          if (err.code === "auth/email-already-in-use") {
+            setInfoMessage("Account already exists with this email. Redirecting to Sign In...");
+            setTimeout(() => {
+              switchMode("signin");
+            }, 1200);
+          } else {
+            setError(err.message || "Could not create account. Please try again.");
+          }
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setError("An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div style={{minHeight:"100vh",background:"var(--bg)",display:"flex",alignItems:"center",justifyContent:"center",padding:"24px",position:"relative",overflow:"hidden"}}>
-      <div className="bg-grid" style={{position:"absolute",inset:0,opacity:1,pointerEvents:"none"}}/>
-      <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(11,165,236,0.1),transparent 70%)",pointerEvents:"none"}}/>
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px", position: "relative", overflow: "hidden" }}>
+      <div className="bg-grid" style={{ position: "absolute", inset: 0, opacity: 0.5, pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 550, height: 550, borderRadius: "50%", background: "radial-gradient(circle,rgba(99,102,241,0.12),transparent 70%)", pointerEvents: "none" }} />
 
-      <Link to="/" style={{position:"absolute",top:24,left:24,display:"flex",alignItems:"center",gap:8,color:"var(--text2)",textDecoration:"none",fontSize:14,transition:"color 0.2s"}}
-        onMouseEnter={e=>e.currentTarget.style.color="var(--text)"}
-        onMouseLeave={e=>e.currentTarget.style.color="var(--text2)"}
+      {/* Back Home Button */}
+      <Link
+        to="/"
+        style={{
+          position: "absolute",
+          top: 24,
+          left: 24,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          color: "var(--text2)",
+          textDecoration: "none",
+          fontSize: 14,
+          fontWeight: 600,
+          transition: "color 0.2s",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--forge)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text2)")}
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Back home
       </Link>
 
-      <div style={{position:"relative",width:"100%",maxWidth:400}}>
+      <div style={{ position: "relative", width: "100%", maxWidth: 420 }}>
         {/* Glow border */}
-        <div style={{position:"absolute",inset:-1,borderRadius:20,background:"linear-gradient(135deg,rgba(11,165,236,0.4),transparent,rgba(6,89,133,0.25))",opacity:0.7}}/>
-        <div className="glass" style={{position:"relative",borderRadius:20,padding:36,boxShadow:"0 24px 80px rgba(0,0,0,0.2)"}}>
-          <div style={{textAlign:"center",marginBottom:32}}>
-            <div className="bg-forge-gradient glow-blue-sm" style={{width:52,height:52,borderRadius:14,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center"}}>
-              <span style={{color:"#fff",fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:20}}>M</span>
+        <div style={{ position: "absolute", inset: -1, borderRadius: 24, background: "linear-gradient(135deg,rgba(99,102,241,0.4),transparent,rgba(6,182,212,0.25))", opacity: 0.7 }} />
+        
+        <div className="glass afu" style={{ position: "relative", borderRadius: 24, padding: 36, boxShadow: "0 24px 80px rgba(0,0,0,0.3)" }}>
+          
+          {/* Header */}
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div className="bg-forge-gradient glow-blue-sm" style={{ width: 48, height: 48, borderRadius: 12, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ color: "#fff", fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 18 }}>M</span>
             </div>
-            <h1 style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:24,color:"var(--text)",margin:"0 0 8px"}}>Welcome to MockForge</h1>
-            <p style={{color:"var(--text2)",fontSize:14,margin:0}}>Sign in to start your interview prep journey</p>
+            <h1 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 22, color: "var(--text)", margin: "0 0 6px" }}>
+              {mode === "signin" ? "Sign In to MockForge" : "Create Your Account"}
+            </h1>
+            <p style={{ color: "var(--text2)", fontSize: 13, margin: 0 }}>
+              {mode === "signin" ? "Enter your credentials to continue" : "Start your AI technical interview practice"}
+            </p>
           </div>
 
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:24}}>
-            <div style={{flex:1,height:1,background:"var(--border)"}}/>
-            <span style={{fontSize:12,color:"var(--text3)"}}>continue with</span>
-            <div style={{flex:1,height:1,background:"var(--border)"}}/>
+          {/* Mode Switcher Tabs */}
+          <div style={{ display: "flex", borderRadius: 12, background: "var(--bg2)", padding: 4, marginBottom: 20, border: "1px solid var(--border)" }}>
+            <button
+              type="button"
+              onClick={() => switchMode("signin")}
+              style={{
+                flex: 1,
+                padding: "8px 0",
+                borderRadius: 8,
+                border: "none",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: mode === "signin" ? "var(--surface)" : "transparent",
+                color: mode === "signin" ? "var(--text)" : "var(--text3)",
+                boxShadow: mode === "signin" ? "0 2px 8px rgba(0,0,0,0.15)" : "none",
+                transition: "all 0.2s",
+              }}
+            >
+              Sign In
+            </button>
+
+            <button
+              type="button"
+              onClick={() => switchMode("create")}
+              style={{
+                flex: 1,
+                padding: "8px 0",
+                borderRadius: 8,
+                border: "none",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: mode === "create" ? "var(--surface)" : "transparent",
+                color: mode === "create" ? "var(--text)" : "var(--text3)",
+                boxShadow: mode === "create" ? "0 2px 8px rgba(0,0,0,0.15)" : "none",
+                transition: "all 0.2s",
+              }}
+            >
+              Create Account
+            </button>
           </div>
 
-          <button onClick={handleGoogleLogin} disabled={loading} className="btn-press"
-            style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:12,background:"var(--surface)",border:"1px solid var(--border)",borderRadius:12,padding:"12px 20px",fontSize:14,fontWeight:600,color:"var(--text)",cursor:loading?"not-allowed":"pointer",opacity:loading?0.6:1,transition:"all 0.2s"}}
-            onMouseEnter={e=>!loading&&(e.currentTarget.style.borderColor="rgba(11,165,236,0.4)")}
-            onMouseLeave={e=>e.currentTarget.style.borderColor="var(--border)"}
-          >
-            {loading ? (
-              <><svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"/><path fill="currentColor" opacity="0.75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Signing in...</>
-            ) : (
-              <><GoogleIcon/> Continue with Google</>
+          {/* Form */}
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {mode === "create" && (
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  style={{
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: 10,
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    fontSize: 13,
+                  }}
+                />
+              </div>
             )}
-          </button>
 
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                Email Address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@company.com"
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  fontSize: 13,
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 4 }}>
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 10,
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  fontSize: 13,
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-forge-gradient btn-press"
+              style={{
+                width: "100%",
+                padding: "12px 20px",
+                borderRadius: 12,
+                border: "none",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.6 : 1,
+                marginTop: 6,
+                boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
+              }}
+            >
+              {loading ? "Processing..." : mode === "signin" ? "Sign In" : "Create Account"}
+            </button>
+          </form>
+
+          {/* Info Toast (Auto-Redirect Notification) */}
+          {infoMessage && (
+            <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 10, color: "var(--forge)", fontSize: 13, textAlign: "center", fontWeight: 600 }}>
+              {infoMessage}
+            </div>
+          )}
+
+          {/* Error Message */}
           {error && (
-            <div style={{marginTop:16,padding:"10px 14px",background:"rgba(248,113,113,0.1)",border:"1px solid rgba(248,113,113,0.25)",borderRadius:10,color:"#f87171",fontSize:13,textAlign:"center"}}>
+            <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 10, color: "var(--red)", fontSize: 13, textAlign: "center" }}>
               {error}
             </div>
           )}
 
-          <p style={{marginTop:24,textAlign:"center",fontSize:12,color:"var(--text3)",lineHeight:1.5}}>
-            By continuing, you agree to our Terms of Service and Privacy Policy.
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+            <span style={{ fontSize: 12, color: "var(--text3)" }}>or continue with</span>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
+
+          {/* Google OAuth Button */}
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="btn-press"
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              background: "var(--bg2)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              padding: "11px 20px",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--text)",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            <GoogleIcon /> Continue with Google
+          </button>
+
+          {/* Bottom Mode Switch Link */}
+          <p style={{ marginTop: 24, textAlign: "center", fontSize: 13, color: "var(--text2)" }}>
+            {mode === "signin" ? (
+              <>
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("create")}
+                  style={{ background: "none", border: "none", color: "var(--forge)", fontWeight: 700, cursor: "pointer", padding: 0 }}
+                >
+                  Create Account
+                </button>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => switchMode("signin")}
+                  style={{ background: "none", border: "none", color: "var(--forge)", fontWeight: 700, cursor: "pointer", padding: 0 }}
+                >
+                  Sign In
+                </button>
+              </>
+            )}
           </p>
         </div>
-        <p style={{textAlign:"center",marginTop:20,fontSize:12,color:"var(--text3)"}}>
-          Join 10,000+ engineers sharpening their interview skills
-        </p>
       </div>
     </div>
   );
