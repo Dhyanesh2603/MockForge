@@ -5,9 +5,16 @@ import { useAuth } from "../context/AuthContext";
 /**
  * BrandLogo — Sleek SVG Logo Emblem & Typography
  */
-export default function BrandLogo({ size = 32, showText = true, to = null }) {
+export default function BrandLogo({ size = 32, showText = true, to = null, onClick = null }) {
   const { user } = useAuth();
   const targetLink = to !== null ? to : (user ? "/dashboard" : "/");
+
+  const handleClick = (e) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick(e);
+    }
+  };
 
   const logoIcon = (
     <div
@@ -41,11 +48,18 @@ export default function BrandLogo({ size = 32, showText = true, to = null }) {
     </div>
   );
 
-  if (!showText) return logoIcon;
+  if (!showText) {
+    return (
+      <Link to={targetLink} onClick={handleClick} style={{ display: "inline-flex", textDecoration: "none" }}>
+        {logoIcon}
+      </Link>
+    );
+  }
 
   return (
     <Link
       to={targetLink}
+      onClick={handleClick}
       style={{
         display: "flex",
         alignItems: "center",

@@ -6,7 +6,7 @@ import { auth } from "../services/firebase";
 import { signOut } from "firebase/auth";
 import BrandLogo from "./BrandLogo";
 
-export default function NavBar({ showLogout = true, rightSlot = null }) {
+export default function NavBar({ showLogout = true, rightSlot = null, onLogoClick = null, logoTo = null }) {
   const { dark, toggle } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +48,7 @@ export default function NavBar({ showLogout = true, rightSlot = null }) {
           }}
         >
           {/* Logo Emblem */}
-          <BrandLogo size={32} />
+          <BrandLogo size={32} to={logoTo} onClick={onLogoClick} />
 
           {/* Right actions */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>

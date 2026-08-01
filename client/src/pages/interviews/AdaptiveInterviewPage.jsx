@@ -79,6 +79,15 @@ export default function AdaptiveInterviewPage() {
   const [swotReport, setSwotReport] = useState(null);
   const [isEvaluatingSwot, setIsEvaluatingSwot] = useState(false);
   const [error, setError] = useState("");
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  const handleLogoClick = () => {
+    if (sessionStarted && !isFinished) {
+      setShowExitConfirm(true);
+    } else {
+      navigate("/dashboard");
+    }
+  };
 
   // Start Adaptive Session
   const handleStartSession = async (e) => {
@@ -195,7 +204,7 @@ export default function AdaptiveInterviewPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
-      <NavBar />
+      <NavBar onLogoClick={handleLogoClick} />
       <div className="bg-ambient" />
 
       <main style={{ flex: 1, maxWidth: 1040, width: "100%", margin: "0 auto", padding: "32px 24px", position: "relative", zIndex: 1 }}>
@@ -394,7 +403,7 @@ export default function AdaptiveInterviewPage() {
                 </span>
 
                 <button
-                  onClick={() => navigate("/dashboard")}
+                  onClick={() => setShowExitConfirm(true)}
                   className="btn-press"
                   style={{
                     padding: "8px 16px",
@@ -759,6 +768,104 @@ export default function AdaptiveInterviewPage() {
         )}
 
       </main>
+
+      {/* ── EXIT CONFIRMATION MODAL ── */}
+      {showExitConfirm && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.65)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            className="glass afu"
+            style={{
+              width: "100%",
+              maxWidth: 420,
+              borderRadius: 24,
+              padding: 28,
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 16,
+                background: "rgba(239,68,68,0.12)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "var(--red)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </div>
+
+            <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+              Exit Practice Session?
+            </h3>
+            <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text2)", lineHeight: 1.6 }}>
+              Are you sure you want to exit to the dashboard? Any unsaved progress will be lost.
+            </p>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => setShowExitConfirm(false)}
+                className="btn-press"
+                style={{
+                  flex: 1,
+                  padding: "11px 18px",
+                  borderRadius: 12,
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Continue Session
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="btn-press"
+                style={{
+                  flex: 1,
+                  padding: "11px 18px",
+                  borderRadius: 12,
+                  background: "var(--red)",
+                  border: "none",
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(239,68,68,0.35)",
+                }}
+              >
+                Exit to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

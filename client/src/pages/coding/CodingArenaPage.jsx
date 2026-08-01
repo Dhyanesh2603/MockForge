@@ -238,7 +238,7 @@ export default function CodingArenaPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", userSelect: isDragging ? "none" : "auto" }}>
-      <NavBar />
+      <NavBar onLogoClick={() => setShowSubmitModal(true)} />
 
       {/* Top Header Bar */}
       <div style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "10px 24px" }}>
