@@ -11,51 +11,91 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
 
+  const [hasDeviceError, setHasDeviceError] = useState(false);
+
   const requestPermissions = async () => {
     setTesting(true);
     setErrorMsg("");
+    setHasDeviceError(false);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setErrorMsg("WebRTC MediaDevices API is not supported in this browser environment.");
+      setHasDeviceError(true);
+      setTesting(false);
+      return;
+    }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 320 }, height: { ideal: 240 } },
-        audio: true,
-      });
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 320 }, height: { ideal: 240 } },
+          audio: true,
+        });
+        setCameraActive(true);
+        setMicActive(true);
+      } catch (firstErr) {
+        // Fallback: Try Video only or Audio only if combined stream fails
+        console.warn("Combined video+audio request failed, trying audio fallback...", firstErr);
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          setMicActive(true);
+          setCameraActive(false);
+          setErrorMsg("Camera device not detected or disabled. Microphone active.");
+        } catch (audErr) {
+          try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            setCameraActive(true);
+            setMicActive(false);
+            setErrorMsg("Microphone device not detected. Camera active.");
+          } catch (vidErr) {
+            throw firstErr;
+          }
+        }
+      }
 
       streamRef.current = stream;
-      setCameraActive(true);
-      setMicActive(true);
 
-      if (videoRef.current) {
+      if (videoRef.current && stream.getVideoTracks().length > 0) {
         videoRef.current.srcObject = stream;
       }
 
       // Audio volume meter
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const source = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 64;
-        source.connect(analyser);
+      if (stream.getAudioTracks().length > 0) {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const source = audioCtx.createMediaStreamSource(stream);
+          const analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 64;
+          source.connect(analyser);
 
-        audioCtxRef.current = audioCtx;
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          audioCtxRef.current = audioCtx;
+          const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-        const meterInterval = setInterval(() => {
-          if (!analyser) return;
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-          const avg = sum / dataArray.length;
-          setMicVolume(Math.min(100, Math.round((avg / 128) * 100)));
-        }, 100);
+          const meterInterval = setInterval(() => {
+            if (!analyser) return;
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const avg = sum / dataArray.length;
+            setMicVolume(Math.min(100, Math.round((avg / 128) * 100)));
+          }, 100);
 
-        return () => clearInterval(meterInterval);
-      } catch (aErr) {
-        console.warn("Audio meter setup error:", aErr);
+          return () => clearInterval(meterInterval);
+        } catch (aErr) {
+          console.warn("Audio meter setup error:", aErr);
+        }
       }
     } catch (err) {
       console.warn("Camera/Mic Permission Error:", err);
-      setErrorMsg("Camera or Microphone access was denied. Please allow access in browser settings to start.");
+      setHasDeviceError(true);
+      if (err.name === "NotFoundError" || err.message?.includes("not found")) {
+        setErrorMsg("No physical camera/microphone hardware detected on this device. You may proceed in software-only mode.");
+      } else if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+        setErrorMsg("Camera or Microphone permission was denied by browser settings. Please click the camera icon in your address bar to allow access.");
+      } else {
+        setErrorMsg(`Media Access Error (${err.name || "Device Error"}): ${err.message || "Failed to access media devices."}`);
+      }
       setCameraActive(false);
       setMicActive(false);
     } finally {
@@ -64,6 +104,7 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
   };
 
   useEffect(() => {
+    requestPermissions();
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((t) => t.stop());
@@ -224,26 +265,46 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
 
         {/* Buttons */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {!cameraActive ? (
-            <button
-              type="button"
-              onClick={requestPermissions}
-              disabled={testing}
-              className="btn-press"
-              style={{
-                padding: "13px",
-                borderRadius: 14,
-                border: "none",
-                background: "linear-gradient(135deg, #38bdf8, #0284c7)",
-                color: "#fff",
-                fontFamily: "Syne, sans-serif",
-                fontWeight: 700,
-                fontSize: 15,
-                cursor: "pointer",
-              }}
-            >
-              {testing ? "Testing Devices..." : "📷 Enable Camera & Microphone"}
-            </button>
+          {!cameraActive && !micActive ? (
+            <>
+              <button
+                type="button"
+                onClick={requestPermissions}
+                disabled={testing}
+                className="btn-press"
+                style={{
+                  padding: "13px",
+                  borderRadius: 14,
+                  border: "none",
+                  background: "linear-gradient(135deg, #38bdf8, #0284c7)",
+                  color: "#fff",
+                  fontFamily: "Syne, sans-serif",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  cursor: "pointer",
+                }}
+              >
+                {testing ? "Testing Devices..." : "📷 Enable Camera & Microphone"}
+              </button>
+              {hasDeviceError && (
+                <button
+                  type="button"
+                  onClick={onReady}
+                  style={{
+                    padding: "10px",
+                    borderRadius: 12,
+                    border: "1px solid var(--border)",
+                    background: "var(--surface)",
+                    color: "var(--text2)",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  ⚠️ Hardware Missing / Bypass to Start
+                </button>
+              )}
+            </>
           ) : (
             <button
               type="button"
