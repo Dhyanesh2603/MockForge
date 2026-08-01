@@ -22,13 +22,20 @@ import {
 
 // Helper to build the full result object from DB row + evaluation_data
 function buildFullResult(dbResult, answers) {
-  const evalData = dbResult.evaluation_data || {};
+  let evalData = dbResult.evaluation_data || {};
+  if (typeof evalData === "string") {
+    try {
+      evalData = JSON.parse(evalData);
+    } catch (e) {
+      evalData = {};
+    }
+  }
   return {
     ...dbResult,
-    overallScore: dbResult.overall_score || 0,
-    technicalScore: evalData.technicalScore || 0,
-    communicationScore: evalData.communicationScore || 0,
-    clarityScore: evalData.clarityScore || 0,
+    overallScore: dbResult.overall_score ?? 0,
+    technicalScore: evalData.technicalScore ?? 0,
+    communicationScore: evalData.communicationScore ?? 0,
+    clarityScore: evalData.clarityScore ?? 0,
     questionScores: evalData.questionScores || [],
     questionCritiques: evalData.questionCritiques || [],
     skillGaps: evalData.skillGaps || [],

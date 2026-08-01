@@ -410,7 +410,16 @@ Return ONLY a valid JSON object matching this schema (do NOT copy example values
 
     const text = await callNvidia(prompt);
     const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-    return JSON.parse(cleaned);
+    try {
+      return JSON.parse(cleaned);
+    } catch (e) {
+      const firstBrace = cleaned.indexOf("{");
+      const lastBrace = cleaned.lastIndexOf("}");
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
+      }
+      throw e;
+    }
   } catch (err) {
     console.error("SWOT analysis generation error:", err);
     // Compute dynamic score based on answered length

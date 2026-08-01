@@ -29,10 +29,23 @@ export const evaluateClashMatch = async ({
       (a) => String(a.user_id || a.userId) === String(p.user_id || p.userId)
     );
 
-    const formattedUserAnswers = userAnswers.map((a, idx) => ({
-      question_id: String(a.question_id || a.questionId || (idx + 1)),
-      answer_text: a.answer_text || a.answerText || "",
-    }));
+    const formattedUserAnswers = userAnswers.map((a, idx) => {
+      let rawQId = String(a.question_id || a.questionId || "");
+      let targetQId = rawQId;
+      if (rawQId.startsWith("q-")) {
+        const qIdx = parseInt(rawQId.replace("q-", ""), 10);
+        if (!isNaN(qIdx) && normalizedQuestions[qIdx]) {
+          targetQId = normalizedQuestions[qIdx].id;
+        }
+      }
+      if (!targetQId || targetQId === "undefined") {
+        targetQId = normalizedQuestions[idx]?.id || String(idx + 1);
+      }
+      return {
+        question_id: targetQId,
+        answer_text: a.answer_text || a.answerText || "",
+      };
+    });
 
     return evaluateInterview({
       role,

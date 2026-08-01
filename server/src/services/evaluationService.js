@@ -95,28 +95,33 @@ const callNvidia = async (prompt, maxTokens = 2048) => {
 
 export const evaluateInterview =
   async ({
-    role,
-    techStack,
-    difficulty,
-    questions,
-    answers,
-  }) => {
+    role = "Software Engineer",
+    techStack = "General",
+    difficulty = "Medium",
+    questions = [],
+    answers = [],
+  } = {}) => {
     try {
+      const validQuestions = Array.isArray(questions) ? questions : [];
+      const validAnswers = Array.isArray(answers) ? answers : [];
+
       // Count how many questions actually have a real answer and build Q&A pairs
       let answeredCount = 0;
-      const qaPairs = questions.map((question, index) => {
-        const matchingAnswer = answers.find(
-          (answer) => String(answer.question_id) === String(question.id)
-        );
-        const answerText = matchingAnswer?.answer_text?.trim() || "";
+      const qaPairs = validQuestions.map((question, index) => {
+        const qId = String(question.id ?? question.question_id ?? question.questionId ?? (index + 1));
+        const matchingAnswer = validAnswers.find((answer) => {
+          const aId = String(answer.question_id ?? answer.questionId ?? answer.id ?? "");
+          return aId === qId || aId === String(index + 1);
+        });
+        const answerText = matchingAnswer?.answer_text?.trim() || matchingAnswer?.answerText?.trim() || "";
         if (answerText.length > 0) {
           answeredCount++;
         }
         return {
           index: index + 1,
-          questionText: question.question_text,
+          questionText: question.question_text || question.questionText || question.text || `Question ${index + 1}`,
           answerText: answerText || "[SKIPPED - No answer provided]",
-          questionId: question.id,
+          questionId: qId,
         };
       });
 
@@ -130,13 +135,14 @@ export const evaluateInterview =
           strengths: "No answers were provided to evaluate.",
           weaknesses: "The candidate did not attempt any questions. All questions were left blank.",
           feedback: "No answers were submitted. Please attempt the interview questions to receive a meaningful evaluation.",
-          questionScores: questions.map(() => 0),
-          questionCritiques: questions.map(() => "No answer was provided for this question."),
+          questionScores: validQuestions.map(() => 0),
+          questionCritiques: validQuestions.map(() => "No answer was provided for this question."),
           skillGaps: ["All topics — no answers provided"],
           strongTopics: [],
         };
       }
 
+      const totalQCount = validQuestions.length || 1;
       const formattedQuestions = qaPairs
         .map((qa) => `Question ${qa.index}:\n${qa.questionText}\n\nCandidate Answer:\n${qa.answerText}`)
         .join("\n\n---\n\n");
@@ -147,15 +153,15 @@ CRITICAL RULES:
 - If a question was SKIPPED or has "[SKIPPED - No answer provided]", that question scores 0.
 - Score each answer based on correctness, depth, and clarity.
 - The overallScore must reflect the proportion of questions answered and the quality of those answers.
-- If only ${answeredCount} out of ${questions.length} questions were answered, the maximum possible overallScore is roughly ${Math.round((answeredCount / questions.length) * 100)}.
+- If only ${answeredCount} out of ${totalQCount} questions were answered, the maximum possible overallScore is roughly ${Math.round((answeredCount / totalQCount) * 100)}.
 - Do NOT give high scores for missing or vague answers.
-- questionScores MUST be an array with exactly ${questions.length} numbers (one per question, in order).
-- questionCritiques MUST be an array with exactly ${questions.length} strings (one critique per question, in order).
+- questionScores MUST be an array with exactly ${totalQCount} numbers (one per question, in order).
+- questionCritiques MUST be an array with exactly ${totalQCount} strings (one critique per question, in order).
 
 Role: ${role}
 Tech Stack: ${techStack}
 Difficulty: ${difficulty}
-Questions Answered: ${answeredCount} out of ${questions.length}
+Questions Answered: ${answeredCount} out of ${totalQCount}
 
 Questions and Candidate Answers:
 ${formattedQuestions}
@@ -176,24 +182,24 @@ Return ONLY a valid JSON object with these exact keys:
 }`;
 
       const rawText = await callNvidia(prompt, 2048);
-      const evaluation = extractJson(rawText);
+      const evaluation = extractJson(rawText) || {};
 
-      const overall = Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score);
-      const tech = Number(evaluation.technicalScore ?? evaluation.technical_score);
-      const comm = Number(evaluation.communicationScore ?? evaluation.communication_score);
-      const clar = Number(evaluation.clarityScore ?? evaluation.clarity_score);
+      const overall = Math.max(0, Math.min(100, Number(evaluation.overallScore ?? evaluation.overall_score ?? evaluation.score) || 0));
+      const tech = Math.max(0, Math.min(100, Number(evaluation.technicalScore ?? evaluation.technical_score) || 0));
+      const comm = Math.max(0, Math.min(100, Number(evaluation.communicationScore ?? evaluation.communication_score) || 0));
+      const clar = Math.max(0, Math.min(100, Number(evaluation.clarityScore ?? evaluation.clarity_score) || 0));
 
       // Sanity cap: score cannot exceed proportion of answered questions + small buffer
-      const maxReasonable = Math.round((answeredCount / questions.length) * 100) + 10;
+      const maxReasonable = Math.min(100, Math.round((answeredCount / totalQCount) * 100) + 10);
 
       // Parse per-question scores — ensure it's an array of the right length
       let questionScores = Array.isArray(evaluation.questionScores || evaluation.question_scores)
-        ? (evaluation.questionScores || evaluation.question_scores).map((s) => Math.min(Number(s) || 0, 100))
-        : questions.map(() => 0);
-      if (questionScores.length < questions.length) {
-        questionScores = [...questionScores, ...Array(questions.length - questionScores.length).fill(0)];
-      } else if (questionScores.length > questions.length) {
-        questionScores = questionScores.slice(0, questions.length);
+        ? (evaluation.questionScores || evaluation.question_scores).map((s) => Math.max(0, Math.min(100, Number(s) || 0)))
+        : validQuestions.map(() => 0);
+      if (questionScores.length < totalQCount) {
+        questionScores = [...questionScores, ...Array(totalQCount - questionScores.length).fill(0)];
+      } else if (questionScores.length > totalQCount) {
+        questionScores = questionScores.slice(0, totalQCount);
       }
       // Set skipped questions to 0
       qaPairs.forEach((qa, i) => {
@@ -205,11 +211,11 @@ Return ONLY a valid JSON object with these exact keys:
       // Parse per-question critiques
       let questionCritiques = Array.isArray(evaluation.questionCritiques || evaluation.question_critiques)
         ? (evaluation.questionCritiques || evaluation.question_critiques).map((c) => String(c || "No critique available."))
-        : questions.map(() => "No critique available.");
-      if (questionCritiques.length < questions.length) {
-        questionCritiques = [...questionCritiques, ...Array(questions.length - questionCritiques.length).fill("No critique available.")];
-      } else if (questionCritiques.length > questions.length) {
-        questionCritiques = questionCritiques.slice(0, questions.length);
+        : validQuestions.map(() => "No critique available.");
+      if (questionCritiques.length < totalQCount) {
+        questionCritiques = [...questionCritiques, ...Array(totalQCount - questionCritiques.length).fill("No critique available.")];
+      } else if (questionCritiques.length > totalQCount) {
+        questionCritiques = questionCritiques.slice(0, totalQCount);
       }
       qaPairs.forEach((qa, i) => {
         if (qa.answerText === "[SKIPPED - No answer provided]") {
@@ -226,10 +232,10 @@ Return ONLY a valid JSON object with these exact keys:
         : [];
 
       return {
-        overallScore: Math.min(overall || 0, maxReasonable),
-        technicalScore: Math.min(tech || 0, maxReasonable),
-        communicationScore: Math.min(comm || 0, maxReasonable),
-        clarityScore: Math.min(clar || 0, maxReasonable),
+        overallScore: Math.min(overall, maxReasonable),
+        technicalScore: Math.min(tech, maxReasonable),
+        communicationScore: Math.min(comm, maxReasonable),
+        clarityScore: Math.min(clar, maxReasonable),
         strengths: evaluation.strengths || "No notable strengths identified.",
         weaknesses: evaluation.weaknesses || "Insufficient answers provided for evaluation.",
         feedback: evaluation.feedback || "Please attempt more questions for a meaningful evaluation.",

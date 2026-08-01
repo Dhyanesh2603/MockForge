@@ -35,10 +35,10 @@ export default function ClashMatchPage() {
   // Normalize questions array to handle string arrays or object structures safely
   const questions = (rawQuestions || []).map((q, idx) => {
     if (typeof q === "string") {
-      return { id: `q-${idx}`, question_text: q };
+      return { id: String(idx + 1), question_text: q };
     }
     return {
-      id: q.id || q.questionId || `q-${idx}`,
+      id: String(q.id || q.questionId || idx + 1),
       question_text: q.question_text || q.questionText || q.text || (typeof q === "object" ? JSON.stringify(q) : `Question ${idx + 1}`),
     };
   });
