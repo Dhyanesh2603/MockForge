@@ -283,55 +283,59 @@ CRITICAL RULES:
 
     const text = await callNvidia(prompt);
     let challenges = [];
+    const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
     try {
-      const cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
       challenges = JSON.parse(cleaned);
     } catch (e) {
-      console.warn("Parsing AI coding JSON failed, returning structured fallback.");
+      const firstBracket = cleaned.indexOf("[");
+      const lastBracket = cleaned.lastIndexOf("]");
+      if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+        try {
+          challenges = JSON.parse(cleaned.substring(firstBracket, lastBracket + 1));
+        } catch (e2) {}
+      }
     }
 
     if (Array.isArray(challenges) && challenges.length > 0) {
       return challenges;
     }
 
-    // Default Fallback Generator if AI response parsing failed
-    return [
-      {
-        id: "code-gen-1",
-        title: `${topic} Challenge: Core Algorithm`,
-        difficulty: difficulty,
-        description: `Implement an optimized algorithm for ${topic}. Write a function that processes the input array and returns the computed result according to requirements.`,
-        inputFormat: `Array of integers or input string for ${topic}.`,
-        outputFormat: "Computed integer or output structure.",
-        sampleTestCases: [
-          { input: "input = [2, 7, 11, 15], target = 9", expected: "[0, 1]" },
-          { input: "input = [3, 2, 4], target = 6", expected: "[1, 2]" },
-        ],
-        hiddenTestCases: [
-          { input: "input = [3, 3], target = 6", expected: "[0, 1]" },
-          { input: "input = [1, 5, 8, 3], target = 11", expected: "[2, 3]" },
-        ],
-      },
-    ];
+    // Dynamic Multi-Question Fallback Generator matching requested numQuestions count
+    const targetCount = Number(numQuestions) || 3;
+    return Array.from({ length: targetCount }, (_, idx) => ({
+      id: `code-gen-${idx + 1}`,
+      title: `${topic} Challenge #${idx + 1}: ${idx === 0 ? "Core Algorithm" : idx === 1 ? "Optimization & Edge Cases" : idx === 2 ? "Data Structure Processing" : idx === 3 ? "Concurrency & Limits" : "Advanced Performance"}`,
+      difficulty: difficulty,
+      description: `Problem ${idx + 1} of ${targetCount}: Write an efficient solution for ${topic} handling specification #${idx + 1}.`,
+      inputFormat: `Input parameter structure for ${topic}.`,
+      outputFormat: "Computed output value.",
+      sampleTestCases: [
+        { input: `input = [${(idx + 1) * 2}, ${(idx + 1) * 3}], target = ${(idx + 1) * 5}`, expected: "[0, 1]" },
+        { input: `input = [3, 2, 4], target = 6`, expected: "[1, 2]" },
+      ],
+      hiddenTestCases: [
+        { input: `input = [100, 200], target = 300`, expected: "[0, 1]" },
+        { input: `input = [1, 2, 3, 4], target = 5`, expected: "[0, 3]" },
+      ],
+    }));
   } catch (err) {
     console.error("Coding challenge generation error:", err);
-    return [
-      {
-        id: "code-gen-fallback",
-        title: `${topic} Algorithmic Challenge`,
-        difficulty: difficulty,
-        description: `Write a function to solve the ${topic} problem efficiently.`,
-        inputFormat: "Input data structure.",
-        outputFormat: "Expected output result.",
-        sampleTestCases: [
-          { input: "nums = [1, 2, 3]", expected: "6" }
-        ],
-        hiddenTestCases: [
-          { input: "nums = [4, 5, 6]", expected: "15" },
-          { input: "nums = [10, 20]", expected: "30" }
-        ]
-      }
-    ];
+    const targetCount = Number(numQuestions) || 3;
+    return Array.from({ length: targetCount }, (_, idx) => ({
+      id: `code-gen-fallback-${idx + 1}`,
+      title: `${topic} Algorithmic Challenge #${idx + 1}`,
+      difficulty: difficulty,
+      description: `Problem ${idx + 1} of ${targetCount}: Write a function to solve ${topic} efficiently.`,
+      inputFormat: "Input data structure.",
+      outputFormat: "Expected output result.",
+      sampleTestCases: [
+        { input: "nums = [1, 2, 3]", expected: "6" }
+      ],
+      hiddenTestCases: [
+        { input: "nums = [4, 5, 6]", expected: "15" },
+        { input: "nums = [10, 20]", expected: "30" }
+      ]
+    }));
   }
 };
 

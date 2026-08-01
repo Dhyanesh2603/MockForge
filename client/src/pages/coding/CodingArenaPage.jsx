@@ -19,6 +19,23 @@ export default function CodingArenaPage() {
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
 
+  // Language recommendation helper
+  const getLanguageRecommendation = (tKey, initLang) => {
+    const t = (tKey || "").toLowerCase();
+    if (t.includes("python") || t.includes("data science") || t.includes("ml")) {
+      return { lang: "python", label: "Python 3.11", reason: "Recommended for Data Science, ML & Rapid Prototyping" };
+    }
+    if (t.includes("cpp") || t.includes("c++") || t.includes("system") || t.includes("memory")) {
+      return { lang: "cpp", label: "C++ 20 (GCC)", reason: "Recommended for Memory Management, STL & System Performance" };
+    }
+    if (t.includes("java") || t.includes("enterprise") || t.includes("spring")) {
+      return { lang: "java", label: "Java 21 (OpenJDK)", reason: "Recommended for Enterprise Architectures & Robust OOP" };
+    }
+    return { lang: initLang || "javascript", label: "JavaScript (ES6)", reason: "Recommended for Data Structures, Web Logic & Async Functions" };
+  };
+
+  const recommendedLang = getLanguageRecommendation(topicKey, initialLang);
+
   // Default problems if AI challenges not available
   const defaultProblems = [
     {
@@ -202,6 +219,31 @@ export default function CodingArenaPage() {
             >
               {isSubmitted ? "✓ Challenge Submitted" : "Finish Coding Challenge"}
             </button>
+
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="btn-press"
+              style={{
+                padding: "8px 16px",
+                borderRadius: 10,
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.3)",
+                color: "var(--red)",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Exit to Dashboard
+            </button>
           </div>
         </div>
       </div>
@@ -232,6 +274,73 @@ export default function CodingArenaPage() {
             paddingRight: 12,
           }}
         >
+          {/* Question Navigation Bar */}
+          {problems.length > 1 && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--surface)", padding: "10px 14px", borderRadius: 16, border: "1px solid var(--border)", gap: 8 }}>
+              <div style={{ display: "flex", gap: 6, overflowX: "auto" }}>
+                {problems.map((p, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIdx(idx)}
+                    className="btn-press"
+                    style={{
+                      padding: "6px 12px",
+                      borderRadius: 8,
+                      border: currentIdx === idx ? "none" : "1px solid var(--border)",
+                      background: currentIdx === idx ? "var(--forge)" : "var(--bg2)",
+                      color: currentIdx === idx ? "#fff" : "var(--text2)",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Question {idx + 1} {solutions[p.id] ? "✓" : ""}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button
+                  disabled={currentIdx === 0}
+                  onClick={() => setCurrentIdx((prev) => Math.max(0, prev - 1))}
+                  className="btn-press"
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: 8,
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: currentIdx === 0 ? "not-allowed" : "pointer",
+                    opacity: currentIdx === 0 ? 0.4 : 1,
+                  }}
+                >
+                  ◄ Prev
+                </button>
+                <button
+                  disabled={currentIdx === problems.length - 1}
+                  onClick={() => setCurrentIdx((prev) => Math.min(problems.length - 1, prev + 1))}
+                  className="btn-press"
+                  style={{
+                    padding: "5px 10px",
+                    borderRadius: 8,
+                    background: "var(--bg2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: currentIdx === problems.length - 1 ? "not-allowed" : "pointer",
+                    opacity: currentIdx === problems.length - 1 ? 0.4 : 1,
+                  }}
+                >
+                  Next ►
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Problem Statement Card */}
           <div className="glass" style={{ borderRadius: 20, padding: 22, border: "1px solid var(--border)" }}>
             <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -259,6 +368,19 @@ export default function CodingArenaPage() {
               <code style={{ fontSize: 12, color: "#10b981", background: "var(--bg2)", padding: "4px 8px", borderRadius: 6, display: "inline-block" }}>
                 {curProblem.outputFormat}
               </code>
+            </div>
+
+            {/* Recommended Language Banner */}
+            <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 16 }}>💡</span>
+              <div>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "var(--accent-cyan)", display: "block" }}>
+                  Recommended Language: {recommendedLang.label}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--text2)" }}>
+                  {recommendedLang.reason} (Supported: JS, Python, C++, Java)
+                </span>
+              </div>
             </div>
           </div>
 

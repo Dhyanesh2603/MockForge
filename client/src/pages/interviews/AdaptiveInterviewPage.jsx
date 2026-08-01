@@ -12,6 +12,51 @@ const ROLE_RUBRICS = [
   { id: "Full Stack Engineer", label: "Full Stack Engineer", focus: "End-to-End Systems, Architecture, Scalability" },
 ];
 
+const FEATURED_TOPICS = [
+  {
+    title: "System Design & Distributed Systems",
+    icon: "🏗️",
+    desc: "Microservices, Load Balancing, Redis Caching, Sharding, Message Queues",
+    rubric: "Backend Engineer",
+    badge: "High Frequency",
+  },
+  {
+    title: "Data Structures & Algorithms",
+    icon: "⚡",
+    desc: "Arrays, Dynamic Programming, Trees & Graphs, Complexity Analysis",
+    rubric: "Full Stack Engineer",
+    badge: "Core Coding",
+  },
+  {
+    title: "Frontend Architecture & React",
+    icon: "💻",
+    desc: "Virtual DOM, Redux, Performance Optimization, Hydration & Rendering",
+    rubric: "Frontend Engineer",
+    badge: "UI / UX Tech",
+  },
+  {
+    title: "Databases, SQL Indexing & Concurrency",
+    icon: "🗄️",
+    desc: "ACID Transactions, Pessimistic/Optimistic Locking, Isolation Levels",
+    rubric: "Backend Engineer",
+    badge: "Data Layer",
+  },
+  {
+    title: "DevOps, Containers & Kubernetes",
+    icon: "☁️",
+    desc: "Docker, K8s Ingress, CI/CD Pipelines, Infrastructure as Code",
+    rubric: "DevOps & Cloud",
+    badge: "Cloud Infra",
+  },
+  {
+    title: "AI, Machine Learning & LLM Systems",
+    icon: "🤖",
+    desc: "Model Fine-Tuning, RAG Pipelines, Vector Embeddings, PyTorch",
+    rubric: "Data Science & ML",
+    badge: "GenAI Tech",
+  },
+];
+
 export default function AdaptiveInterviewPage() {
   const navigate = useNavigate();
 
@@ -157,85 +202,154 @@ export default function AdaptiveInterviewPage() {
 
         {/* ── STEP 1: SETUP FORM ── */}
         {!sessionStarted && (
-          <div className="glass afu" style={{ borderRadius: 24, padding: 36, border: "1px solid var(--border)", maxWidth: 640, margin: "20px auto" }}>
-            <div style={{ textAlign: "center", marginBottom: 28 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--forge)", fontFamily: "monospace", textTransform: "uppercase" }}>
-                PRACTICE MODE · NO TIME LIMIT
-              </span>
-              <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 24, margin: "6px 0", color: "var(--text)" }}>
-                Adaptive AI Practice Interview
-              </h2>
-              <p style={{ fontSize: 14, color: "var(--text2)", margin: 0 }}>
-                Enter any topic. The AI dynamically adapts question difficulty based on your answer depth and generates a full SWOT analysis.
-              </p>
-            </div>
-
-            <form onSubmit={handleStartSession} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 880, margin: "0 auto" }}>
+            
+            {/* Top Bar with Exit Button */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", display: "block", marginBottom: 6 }}>
-                  Target Practice Subject / Topic
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g. Distributed Systems, React Performance, SQL Indexing..."
-                  style={{
-                    width: "100%",
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "var(--bg2)",
-                    border: "1px solid var(--border)",
-                    color: "var(--text)",
-                    fontSize: 14,
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", display: "block", marginBottom: 6 }}>
-                  Role Evaluation Rubric
-                </label>
-                <select
-                  value={roleRubric}
-                  onChange={(e) => setRoleRubric(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    background: "var(--bg2)",
-                    border: "1px solid var(--border)",
-                    color: "var(--text)",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  {ROLE_RUBRICS.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label} ({r.focus})
-                    </option>
-                  ))}
-                </select>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--forge)", fontFamily: "monospace", textTransform: "uppercase" }}>
+                  ADAPTIVE PRACTICE ENGINE
+                </span>
+                <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 26, margin: "2px 0 0", color: "var(--text)" }}>
+                  Select Topic & Interview Rubric
+                </h2>
               </div>
 
               <button
-                type="submit"
-                className="bg-forge-gradient btn-press"
+                onClick={() => navigate("/dashboard")}
+                className="btn-press"
                 style={{
-                  padding: "14px 24px",
-                  borderRadius: 12,
-                  border: "none",
-                  color: "#fff",
-                  fontSize: 15,
+                  padding: "8px 16px",
+                  borderRadius: 10,
+                  background: "rgba(239,68,68,0.1)",
+                  border: "1px solid rgba(239,68,68,0.3)",
+                  color: "var(--red)",
+                  fontSize: 13,
                   fontWeight: 700,
                   cursor: "pointer",
-                  boxShadow: "0 8px 24px rgba(99,102,241,0.35)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
                 }}
               >
-                Start Adaptive Practice Session
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                Exit to Dashboard
               </button>
-            </form>
+            </div>
+
+            {/* Featured Topic Cards */}
+            <div>
+              <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text2)", display: "block", marginBottom: 12 }}>
+                Explore Popular Practice Topics (Click to Select)
+              </label>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
+                {FEATURED_TOPICS.map((item, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => {
+                      setTopic(item.title);
+                      setRoleRubric(item.rubric);
+                    }}
+                    className="btn-press"
+                    style={{
+                      padding: 16,
+                      borderRadius: 16,
+                      background: topic === item.title ? "rgba(99,102,241,0.12)" : "var(--surface)",
+                      border: topic === item.title ? "1.5px solid var(--forge)" : "1px solid var(--border)",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 22 }}>{item.icon}</span>
+                      <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(99,102,241,0.15)", color: "var(--forge)", fontFamily: "monospace" }}>
+                        {item.badge}
+                      </span>
+                    </div>
+                    <strong style={{ fontSize: 14, color: "var(--text)", display: "block", marginBottom: 4, fontFamily: "Syne, sans-serif" }}>
+                      {item.title}
+                    </strong>
+                    <p style={{ fontSize: 12, color: "var(--text2)", margin: 0, lineHeight: 1.5 }}>
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Setup Form */}
+            <div className="glass afu" style={{ borderRadius: 24, padding: 32, border: "1px solid var(--border)" }}>
+              <form onSubmit={handleStartSession} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", display: "block", marginBottom: 6 }}>
+                    Or Type Any Custom Topic / Subject
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="e.g. Distributed Systems, React Performance, SQL Indexing..."
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      background: "var(--bg2)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text)",
+                      fontSize: 14,
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", display: "block", marginBottom: 6 }}>
+                    Role Evaluation Rubric
+                  </label>
+                  <select
+                    value={roleRubric}
+                    onChange={(e) => setRoleRubric(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: 12,
+                      background: "var(--bg2)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text)",
+                      fontSize: 14,
+                      cursor: "pointer",
+                    }}
+                  >
+                    {ROLE_RUBRICS.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.label} ({r.focus})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  className="bg-forge-gradient btn-press"
+                  style={{
+                    padding: "14px 24px",
+                    borderRadius: 12,
+                    border: "none",
+                    color: "#fff",
+                    fontSize: 15,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    boxShadow: "0 8px 24px rgba(99,102,241,0.35)",
+                  }}
+                >
+                  Start Adaptive Practice Session
+                </button>
+              </form>
+            </div>
           </div>
         )}
 
@@ -280,10 +394,10 @@ export default function AdaptiveInterviewPage() {
                 </span>
 
                 <button
-                  onClick={handleFinishSession}
+                  onClick={() => navigate("/dashboard")}
                   className="btn-press"
                   style={{
-                    padding: "8px 18px",
+                    padding: "8px 16px",
                     borderRadius: 10,
                     background: "rgba(239,68,68,0.1)",
                     border: "1px solid rgba(239,68,68,0.3)",
@@ -291,9 +405,17 @@ export default function AdaptiveInterviewPage() {
                     fontSize: 13,
                     fontWeight: 700,
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  End & Get SWOT Analysis
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                  Exit to Dashboard
                 </button>
               </div>
             </div>

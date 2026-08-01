@@ -7,7 +7,7 @@ import { useAuth } from "../context/AuthContext";
  */
 export default function BrandLogo({ size = 32, showText = true, to = null }) {
   const { user } = useAuth();
-  const targetLink = to || (user ? "/dashboard" : "/");
+  const targetLink = to !== null ? to : (user ? "/dashboard" : "/");
 
   const logoIcon = (
     <div

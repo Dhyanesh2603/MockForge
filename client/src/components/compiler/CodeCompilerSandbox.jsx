@@ -10,7 +10,7 @@ export default function CodeCompilerSandbox({
   onSubmitSolution = () => {},
 }) {
   const [language, setLanguage] = useState(initialLanguage);
-  const [code, setCode] = useState(defaultCode || getStarterCode(initialLanguage));
+  const [code, setCode] = useState(defaultCode !== undefined ? defaultCode : "");
   const [customInput, setCustomInput] = useState("");
   const [activeConsoleTab, setActiveConsoleTab] = useState("output"); // "output" | "input"
   const [output, setOutput] = useState("");
@@ -19,26 +19,9 @@ export default function CodeCompilerSandbox({
 
   const textareaRef = useRef(null);
 
-  function getStarterCode(lang) {
-    switch (lang) {
-      case "javascript":
-        return `// JavaScript Solution\nfunction solution(num) {\n  return num * 2;\n}\n\nlet num = 5;\nconsole.log("Result:", solution(num));`;
-      case "python":
-        return `# Python Solution\ndef solution(num):\n    return num * 2\n\nnum = 5\nprint("Result:", solution(num))`;
-      case "cpp":
-        return `// C++ Solution\n#include <iostream>\nusing namespace std;\n\nint main() {\n    int num = 5;\n    cout << "Result: " << (num * 2) << endl;\n    return 0;\n}`;
-      case "java":
-        return `// Java Solution\nimport java.util.Scanner;\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int num = 5;\n        System.out.println(num);\n    }\n}`;
-      default:
-        return `// Write solution here...`;
-    }
-  }
-
   const handleLanguageChange = (newLang) => {
     setLanguage(newLang);
-    const starter = getStarterCode(newLang);
-    setCode(starter);
-    onCodeChange(starter, newLang);
+    onCodeChange(code, newLang);
     setOutput("");
     setTestResults(null);
   };
@@ -66,6 +49,13 @@ export default function CodeCompilerSandbox({
 
     setTimeout(() => {
       try {
+        const cleanCode = (code || "").trim();
+        if (!cleanCode) {
+          setOutput("[Info]: Code box is empty. Type your solution in the editor box above and click 'Run Code'.");
+          setTestResults({ passed: false, tests: [{ name: "Code Validation", status: "EMPTY CODE BOX" }] });
+          return;
+        }
+
         const logs = [];
         const stdinStr = (customInput || "").trim();
 

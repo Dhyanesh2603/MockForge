@@ -87,7 +87,7 @@ export default function HomePage() {
       >
         <div style={{ maxWidth: 1240, margin: "0 auto", padding: "0 24px", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
-          <BrandLogo size={34} />
+          <BrandLogo size={34} to="/" />
 
           {/* Nav Items */}
           <div style={{ display: "flex", alignItems: "center", gap: 28 }} className="hidden-mobile">
@@ -718,7 +718,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer style={{ borderTop: "1px solid var(--border)", background: "var(--surface)", padding: "32px 24px", textAlign: "center", fontSize: 13, color: "var(--text3)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <BrandLogo size={28} />
+          <BrandLogo size={28} to="/" />
           <span>© {new Date().getFullYear()} MockForge Platform. Enterprise AI Technical Interviews & Coding Arena.</span>
         </div>
       </footer>
