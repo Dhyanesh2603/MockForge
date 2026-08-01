@@ -152,7 +152,7 @@ export default function HomePage() {
                 boxShadow: "0 6px 20px rgba(99,102,241,0.35)",
               }}
             >
-              Start Free Trial 🚀
+              Create Account 🚀
             </Link>
           </div>
         </div>
@@ -622,7 +622,7 @@ export default function HomePage() {
                 display: "inline-block",
               }}
             >
-              Start Practicing Free Now 🚀
+              Create Account Free 🚀
             </Link>
           </div>
         </section>
