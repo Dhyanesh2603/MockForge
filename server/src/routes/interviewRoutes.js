@@ -43,7 +43,7 @@ router.post("/coding/generate", authMiddleware, async (req, res) => {
 });
 
 // POST /adaptive/next — Generates next adaptive question based on response depth
-router.post("/adaptive/next", authMiddleware, async (req, res) => {
+router.post("/adaptive/next", async (req, res) => {
   try {
     const { topic, history, roleRubric } = req.body;
     const result = await generateAdaptiveNextQuestion({ topic, history, roleRubric });
@@ -55,7 +55,7 @@ router.post("/adaptive/next", authMiddleware, async (req, res) => {
 });
 
 // POST /adaptive/evaluate — Generates SWOT Analysis & Role Rubric Scores
-router.post("/adaptive/evaluate", authMiddleware, async (req, res) => {
+router.post("/adaptive/evaluate", async (req, res) => {
   try {
     const { topic, qnaPairs, roleRubric } = req.body;
     const swotReport = await generateSwotAnalysis({ topic, qnaPairs, roleRubric });
