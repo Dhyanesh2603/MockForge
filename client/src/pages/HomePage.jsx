@@ -6,28 +6,32 @@ import BrandLogo from "../components/BrandLogo";
 /* ── Smooth Scroll Reveal Hook ── */
 function useReveal() {
   useEffect(() => {
+    let io;
     const timer = setTimeout(() => {
       const els = document.querySelectorAll(
         ".reveal, .reveal-left, .reveal-right, .reveal-scale"
       );
       if (!els.length) return;
 
-      const io = new IntersectionObserver(
-        (entries) =>
+      io = new IntersectionObserver(
+        (entries) => {
           entries.forEach((e) => {
             if (e.isIntersecting) {
               e.target.classList.add("in");
               io.unobserve(e.target);
             }
-          }),
-        { threshold: 0.08, rootMargin: "0px 0px -40px 0px" }
+          });
+        },
+        { threshold: 0.05, rootMargin: "0px 0px -20px 0px" }
       );
 
       els.forEach((el) => io.observe(el));
-      return () => io.disconnect();
-    }, 100);
+    }, 60);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (io) io.disconnect();
+    };
   }, []);
 }
 

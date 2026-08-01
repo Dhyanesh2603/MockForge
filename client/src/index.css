@@ -57,7 +57,6 @@ body {
 /* ── Smooth Transitions ───────────── */
 *, *::before, *::after {
   box-sizing: border-box;
-  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
 }
 
 /* ── Scrollbar ────────────────────────────────── */
@@ -113,6 +112,46 @@ body {
   border: 1px solid rgba(245, 158, 11, 0.35);
   color: #fbbf24;
 }
+
+/* ── Scroll Reveal System ────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(45px);
+  will-change: opacity, transform;
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-55px);
+  will-change: opacity, transform;
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(55px);
+  will-change: opacity, transform;
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.88);
+  will-change: opacity, transform;
+}
+
+.reveal.in, .reveal-left.in, .reveal-right.in, .reveal-scale.in {
+  opacity: 1 !important;
+  transform: translate(0, 0) scale(1) !important;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Stagger Delays */
+.d1 { transition-delay: 0.1s !important; }
+.d2 { transition-delay: 0.2s !important; }
+.d3 { transition-delay: 0.3s !important; }
+.d4 { transition-delay: 0.4s !important; }
+.d5 { transition-delay: 0.5s !important; }
+.d6 { transition-delay: 0.6s !important; }
 
 /* ── Animations ────────────────────────────────── */
 @keyframes fadeUp {
