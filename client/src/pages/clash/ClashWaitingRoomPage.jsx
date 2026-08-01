@@ -33,6 +33,7 @@ export default function ClashWaitingRoomPage() {
         setRoom(res.data.room);
         setParticipants(res.data.participants || []);
         setQuestions(res.data.questions || []);
+        setLoading(false);
 
         // Connect Socket.io
         socket = connectClashSocket();

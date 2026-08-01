@@ -65,7 +65,11 @@ export default function ClashResultPage() {
   const [loading, setLoading] = useState(!matchData);
 
   useEffect(() => {
-    if (matchData || !user || !roomCode) return;
+    if (matchData) {
+      setLoading(false);
+      return;
+    }
+    if (!user || !roomCode) return;
 
     (async () => {
       try {

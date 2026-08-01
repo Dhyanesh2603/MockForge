@@ -29,6 +29,8 @@ export default function ClashMatchPage() {
   const answersRef = useRef(answers);
   answersRef.current = answers;
 
+  const [loading, setLoading] = useState(!location.state?.questions?.length);
+
   useEffect(() => {
     if (!user || !roomCode) return;
 
@@ -47,6 +49,8 @@ export default function ClashMatchPage() {
         }
       } catch (e) {
         console.error(e);
+      } finally {
+        setLoading(false);
       }
     })();
 
@@ -135,6 +139,22 @@ export default function ClashMatchPage() {
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   const currentQ = questions[currentIdx];
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", border: "3px solid #f43f5e", borderTopColor: "transparent", margin: "0 auto 16px" }} className="asp" />
+          <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif", margin: "0 0 6px" }}>
+            Connecting to 1v1 Clash Arena...
+          </h3>
+          <p style={{ color: "var(--text2)", fontSize: 13, margin: 0 }}>
+            Fetching battle questions and sync state...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (evaluatingMsg) {
     return (
