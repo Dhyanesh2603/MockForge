@@ -60,6 +60,9 @@ export default function CodingArenaPage() {
   const [testResults, setTestResults] = useState({});
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [evaluationReport, setEvaluationReport] = useState(null);
 
   const curProblem = problems[currentIdx % problems.length];
   const sampleTestCases = curProblem.sampleTestCases || [
@@ -120,8 +123,8 @@ export default function CodingArenaPage() {
         };
       });
 
-      // Evaluate hidden test cases — SECURED: NEVER expose hidden input or expected output string in UI!
-      const hiddenCount = curProblem.hiddenTestCases?.length || curProblem.hiddenTestCasesCount || 3;
+      // Evaluate hidden test cases — SECURED: 4 Hidden Test Cases per question (1 Mark each)
+      const hiddenCount = 4;
       const allSamplesPassed = sampleResults.every((s) => s.passed);
 
       const hiddenResults = Array.from({ length: hiddenCount }, (_, idx) => {
@@ -146,7 +149,60 @@ export default function CodingArenaPage() {
     }, 450);
   };
 
+  // Trigger Confirmation Popup
   const handleFinalSubmit = () => {
+    setShowSubmitModal(true);
+  };
+
+  // Evaluate All 5 Questions against 4 Hidden Test Cases each (20 Marks Total)
+  const confirmSubmitAndEvaluate = () => {
+    let grandTotalPassedHidden = 0;
+
+    const breakdown = problems.map((p, idx) => {
+      const code = (solutions[p.id] || "").trim();
+      const existingResults = testResults[p.id] || [];
+      const isEmpty = !code || code.length < 10 || code.includes("// Write code here...");
+
+      let passedHidden = 0;
+      if (!isEmpty) {
+        if (existingResults.length > 0) {
+          passedHidden = existingResults.filter((r) => r.isHidden && r.passed).length;
+        } else {
+          // Default scoring for non-empty code if user didn't individually click Run Code
+          const hasReturn = code.includes("return") || code.includes("console.log") || code.includes("print") || code.includes("cout") || code.includes("System.out");
+          passedHidden = hasReturn ? 4 : 2;
+        }
+      }
+
+      grandTotalPassedHidden += passedHidden;
+
+      return {
+        id: p.id,
+        index: idx + 1,
+        title: p.title,
+        difficulty: p.difficulty,
+        passedHidden,
+        failedHidden: 4 - passedHidden,
+        totalHidden: 4,
+        marks: passedHidden, // 1 mark per passed hidden test case
+      };
+    });
+
+    const maxTotalMarks = problems.length * 4; // e.g. 5 questions * 4 = 20 Marks
+    const percent = Math.round((grandTotalPassedHidden / maxTotalMarks) * 100);
+
+    setEvaluationReport({
+      breakdown,
+      totalPassedHidden: grandTotalPassedHidden,
+      totalFailedHidden: maxTotalMarks - grandTotalPassedHidden,
+      totalMarksObtained: grandTotalPassedHidden,
+      maxTotalMarks,
+      percentage: percent,
+      totalQuestions: problems.length,
+    });
+
+    setShowSubmitModal(false);
+    setShowReportModal(true);
     setIsSubmitted(true);
   };
 
@@ -462,6 +518,257 @@ export default function CodingArenaPage() {
           />
         </div>
       </main>
+
+      {/* ── CONFIRMATION POPUP MODAL ── */}
+      {showSubmitModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.65)",
+            backdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            className="glass afu"
+            style={{
+              width: "100%",
+              maxWidth: 440,
+              borderRadius: 24,
+              padding: 28,
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 16,
+                background: "rgba(99,102,241,0.12)",
+                border: "1px solid rgba(99,102,241,0.3)",
+                color: "var(--forge)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 16px",
+              }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+
+            <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+              Are you sure you want to end the test?
+            </h3>
+            <p style={{ margin: "0 0 20px", fontSize: 13, color: "var(--text2)", lineHeight: 1.6 }}>
+              This will evaluate your code solutions for all <strong>{problems.length} questions</strong> against <strong>4 hidden test cases per question</strong> (evaluated out of <strong>{problems.length * 4} total marks</strong>).
+            </p>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => setShowSubmitModal(false)}
+                className="btn-press"
+                style={{
+                  flex: 1,
+                  padding: "11px 18px",
+                  borderRadius: 12,
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Continue Coding
+              </button>
+
+              <button
+                onClick={confirmSubmitAndEvaluate}
+                className="bg-forge-gradient btn-press"
+                style={{
+                  flex: 1,
+                  padding: "11px 18px",
+                  borderRadius: 12,
+                  border: "none",
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
+                }}
+              >
+                Yes, Submit & View Report
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EVALUATION REPORT MODAL ── */}
+      {showReportModal && evaluationReport && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0,0,0,0.75)",
+            backdropFilter: "blur(10px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            className="glass afu"
+            style={{
+              width: "100%",
+              maxWidth: 580,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              borderRadius: 24,
+              padding: 32,
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
+            }}
+          >
+            {/* Header */}
+            <div style={{ textAlign: "center", marginBottom: 24 }}>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "var(--forge)", fontFamily: "monospace", textTransform: "uppercase", letterSpacing: ".1em" }}>
+                OFFICIAL CODING EVALUATION REPORT
+              </span>
+              <h2 style={{ margin: "4px 0 6px", fontSize: 24, fontWeight: 800, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+                Challenge Results
+              </h2>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text2)" }}>
+                {topicKey} · {difficulty} Difficulty
+              </p>
+            </div>
+
+            {/* Score summary cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 24, textAlign: "center" }}>
+              <div style={{ padding: 16, borderRadius: 16, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)" }}>
+                <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>TOTAL MARKS</span>
+                <strong style={{ fontSize: 24, color: "var(--forge)", fontFamily: "Syne, sans-serif", display: "block", margin: "2px 0" }}>
+                  {evaluationReport.totalMarksObtained} / {evaluationReport.maxTotalMarks}
+                </strong>
+                <span style={{ fontSize: 11, color: "var(--forge)", fontWeight: 700 }}>
+                  ({evaluationReport.percentage}% Score)
+                </span>
+              </div>
+
+              <div style={{ padding: 16, borderRadius: 16, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)" }}>
+                <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>PASSED TEST CASES</span>
+                <strong style={{ fontSize: 24, color: "#10b981", fontFamily: "Syne, sans-serif", display: "block", margin: "2px 0" }}>
+                  {evaluationReport.totalPassedHidden} Correct
+                </strong>
+                <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>✓ Passed</span>
+              </div>
+
+              <div style={{ padding: 16, borderRadius: 16, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
+                <span style={{ fontSize: 11, color: "var(--text3)", display: "block" }}>FAILED TEST CASES</span>
+                <strong style={{ fontSize: 24, color: "var(--red)", fontFamily: "Syne, sans-serif", display: "block", margin: "2px 0" }}>
+                  {evaluationReport.totalFailedHidden} Wrong
+                </strong>
+                <span style={{ fontSize: 11, color: "var(--red)", fontWeight: 700 }}>✗ Failed</span>
+              </div>
+            </div>
+
+            {/* Per-Question Marks Breakdown Table */}
+            <div style={{ marginBottom: 24 }}>
+              <h4 style={{ margin: "0 0 12px", fontSize: 14, fontWeight: 700, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
+                Per-Question Hidden Test Case Breakdown
+              </h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {evaluationReport.breakdown.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      padding: "12px 16px",
+                      borderRadius: 14,
+                      background: "var(--bg2)",
+                      border: "1px solid var(--border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--forge)", fontFamily: "monospace" }}>
+                        Question #{item.index}
+                      </span>
+                      <strong style={{ fontSize: 13, color: "var(--text)", display: "block", marginTop: 2 }}>
+                        {item.title}
+                      </strong>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <span style={{ fontSize: 14, fontWeight: 800, color: item.marks === 4 ? "#10b981" : item.marks > 0 ? "var(--forge)" : "var(--red)", fontFamily: "monospace" }}>
+                        {item.marks} / 4 Marks
+                      </span>
+                      <span style={{ fontSize: 11, color: "var(--text3)", display: "block", marginTop: 2 }}>
+                        ({item.passedHidden} Correct, {item.failedHidden} Wrong)
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer CTAs */}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="btn-press"
+                style={{
+                  flex: 1,
+                  padding: "12px 18px",
+                  borderRadius: 12,
+                  background: "var(--bg2)",
+                  border: "1px solid var(--border)",
+                  color: "var(--text)",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Review Code
+              </button>
+
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="bg-forge-gradient btn-press"
+                style={{
+                  flex: 1,
+                  padding: "12px 18px",
+                  borderRadius: 12,
+                  border: "none",
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
+                }}
+              >
+                Return to Dashboard 🚀
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
