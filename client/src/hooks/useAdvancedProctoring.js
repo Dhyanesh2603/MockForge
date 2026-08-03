@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { FaceLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
+import { AudioNoiseAnalyzer } from "../utils/audioNoiseAnalyzer";
 
 /**
  * useAdvancedProctoring — Enterprise AI Proctoring Engine
@@ -35,6 +36,15 @@ export function useAdvancedProctoring(enabled = true) {
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
+  const audioAnalyzerRef = useRef(null);
+  const isDictatingRef = useRef(false);
+  const [isDictatingActive, setIsDictatingActive] = useState(false);
+
+  const setDictatingActive = useCallback((active) => {
+    isDictatingRef.current = !!active;
+    setIsDictatingActive(!!active);
+  }, []);
+
   const toastTimerRef = useRef(null);
   const faceLandmarkerRef = useRef(null);
   const gazeAwayStartRef = useRef(null);
@@ -137,7 +147,7 @@ export function useAdvancedProctoring(enabled = true) {
           videoRef.current.play().catch(() => {});
         }
 
-        // Audio monitoring setup
+        // Audio monitoring setup with adaptive noise calibration
         if (hasAudio) {
           try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -147,6 +157,7 @@ export function useAdvancedProctoring(enabled = true) {
             source.connect(analyser);
             audioCtxRef.current = audioCtx;
             analyserRef.current = analyser;
+            audioAnalyzerRef.current = new AudioNoiseAnalyzer(audioCtx, analyser);
           } catch (audioErr) {
             console.warn("AudioContext setup failed:", audioErr);
           }
@@ -425,21 +436,22 @@ export function useAdvancedProctoring(enabled = true) {
         ? Date.now() - gazeAwayStartRef.current
         : 0;
 
-      // ─── Audio Analysis ───
-      let audioLevel = 0;
-      if (analyserRef.current) {
-        const freqData = new Uint8Array(analyserRef.current.frequencyBinCount);
-        analyserRef.current.getByteFrequencyData(freqData);
-        let sum = 0;
-        for (let i = 0; i < freqData.length; i++) sum += freqData[i];
-        audioLevel = sum / freqData.length;
+      // ─── Calibrated Audio Analysis ───
+      let isNoiseBurst = false;
+      let isSpeechDetected = false;
+
+      if (audioAnalyzerRef.current) {
+        const audioMetrics = audioAnalyzerRef.current.analyze();
+
+        // Suppress anti-cheat noise & speech warnings if candidate is actively dictating oral response
+        if (!isDictatingRef.current) {
+          isNoiseBurst = audioMetrics.isNoiseBurst;
+          isSpeechDetected = audioMetrics.isSpeech;
+        }
       }
 
-      // Sudden noise burst
-      const isNoiseBurst = audioLevel > NOISE_BURST_THRESHOLD;
-
-      // Continuous speech detection
-      if (audioLevel > SPEECH_THRESHOLD) {
+      // Continuous speech detection accumulator
+      if (isSpeechDetected) {
         continuousSpeechFrames++;
       } else {
         continuousSpeechFrames = Math.max(0, continuousSpeechFrames - 2); // decay
@@ -573,5 +585,7 @@ export function useAdvancedProctoring(enabled = true) {
     pauseReason,
     visibilityStatus,
     eyeTrackingActive,
+    isDictatingActive,
+    setDictatingActive,
   };
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { AudioNoiseAnalyzer } from "../utils/audioNoiseAnalyzer";
 
 export function useProctoring(enabled = true) {
   const [cameraActive, setCameraActive] = useState(false);
@@ -6,12 +7,20 @@ export function useProctoring(enabled = true) {
   const [incidents, setIncidents] = useState([]);
   const [integrityScore, setIntegrityScore] = useState(100);
   const [warningToast, setWarningToast] = useState(null);
+  const [isDictatingActive, setIsDictatingActive] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const audioCtxRef = useRef(null);
   const analyserRef = useRef(null);
+  const audioAnalyzerRef = useRef(null);
+  const isDictatingRef = useRef(false);
   const toastTimerRef = useRef(null);
+
+  const setDictatingActive = useCallback((active) => {
+    isDictatingRef.current = !!active;
+    setIsDictatingActive(!!active);
+  }, []);
 
   // Helper to trigger a warning toast & record an incident
   const addIncident = useCallback((type, detail, pointDeduction = 5) => {
@@ -84,40 +93,48 @@ export function useProctoring(enabled = true) {
           videoRef.current.play().catch(() => {});
         }
 
-        // Web Audio API noise monitoring if audio track exists
+        // Web Audio API adaptive noise monitoring if audio track exists
         if (hasAudio) {
           try {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioCtx.createMediaStreamSource(stream);
             const analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 256;
+            analyser.fftSize = 512;
             source.connect(analyser);
 
             audioCtxRef.current = audioCtx;
             analyserRef.current = analyser;
+            audioAnalyzerRef.current = new AudioNoiseAnalyzer(audioCtx, analyser);
 
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
             let highVolumeCount = 0;
 
             const audioInterval = setInterval(() => {
-              if (!analyserRef.current) return;
-              analyserRef.current.getByteFrequencyData(dataArray);
-              let sum = 0;
-              for (let i = 0; i < dataArray.length; i++) {
-                sum += dataArray[i];
+              if (!audioAnalyzerRef.current) return;
+              
+              // Skip audio warnings if candidate is actively dictating response
+              if (isDictatingRef.current) {
+                highVolumeCount = 0;
+                return;
               }
-              const average = sum / dataArray.length;
 
-              if (average > 65) {
+              const metrics = audioAnalyzerRef.current.analyze();
+
+              if (metrics.isNoiseBurst || metrics.isSpeech) {
                 highVolumeCount++;
                 if (highVolumeCount >= 3) {
-                  addIncident("AUDIO_ACTIVITY", "Unusual speech/noise activity detected.", 4);
+                  addIncident(
+                    metrics.isNoiseBurst ? "AUDIO_BURST" : "AUDIO_ACTIVITY",
+                    metrics.isNoiseBurst
+                      ? "Sudden loud noise burst detected."
+                      : "Unusual background speech activity detected.",
+                    4
+                  );
                   highVolumeCount = 0;
                 }
               } else {
-                highVolumeCount = 0;
+                highVolumeCount = Math.max(0, highVolumeCount - 1);
               }
-            }, 1000);
+            }, 800);
 
             return () => clearInterval(audioInterval);
           } catch (audioErr) {
@@ -197,5 +214,7 @@ export function useProctoring(enabled = true) {
     incidents,
     integrityScore,
     warningToast,
+    isDictatingActive,
+    setDictatingActive,
   };
 }

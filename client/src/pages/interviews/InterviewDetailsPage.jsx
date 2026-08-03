@@ -412,6 +412,7 @@ export default function InterviewDetailsPage() {
                   handleChange(updated);
                 }
               }}
+              onListeningStateChange={(active) => proctoring.setDictatingActive?.(active)}
               currentAnswer={answers[cur?.id] || ""}
             />
 

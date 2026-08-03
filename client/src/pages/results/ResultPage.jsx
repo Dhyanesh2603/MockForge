@@ -8,12 +8,13 @@ import ProctoringTimelineBar from "../../components/proctoring/ProctoringTimelin
 import { analyzeSpeech } from "../../utils/speechAnalytics";
 
 /* ── Score Ring ─────────────────────────────── */
-function ScoreRing({score,size=148}){
+function ScoreRing({score, maxScore=100, size=148}){
   const r=52,C=2*Math.PI*r;
   const [off,setOff]=useState(C);
-  useEffect(()=>{const t=setTimeout(()=>setOff(C-(score/100)*C),500);return()=>clearTimeout(t);},[score,C]);
-  const col=score>=75?"#34d399":score>=50?"#fbbf24":"#f87171";
-  const lbl=score>=75?"Excellent":score>=50?"Good":"Needs Work";
+  const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
+  useEffect(()=>{const t=setTimeout(()=>setOff(C-(pct/100)*C),500);return()=>clearTimeout(t);},[pct,C]);
+  const col=pct>=75?"#34d399":pct>=50?"#fbbf24":"#f87171";
+  const lbl=pct>=75?"Excellent":pct>=50?"Good":"Needs Work";
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
       <div style={{position:"relative",width:size,height:size}}>
@@ -25,7 +26,7 @@ function ScoreRing({score,size=148}){
         </svg>
         <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
           <span style={{fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:30,color:"var(--text)",lineHeight:1}}>{score}</span>
-          <span style={{fontSize:11,color:"var(--text3)",marginTop:2}}>/100</span>
+          <span style={{fontSize:11,color:"var(--text3)",marginTop:2}}>/{maxScore}</span>
         </div>
       </div>
       <span style={{fontSize:12,fontWeight:700,padding:"3px 14px",borderRadius:999,background:`${col}18`,border:`1px solid ${col}30`,color:col}}>{lbl}</span>
@@ -284,9 +285,9 @@ export default function ResultPage(){
             <div style={{display:"flex",flexDirection:"column",gap:18}}>
               <div style={{display:"grid",gridTemplateColumns:"auto 1fr",gap:18}}>
                 <div className="glass glow-blue-sm" style={{borderRadius:22,padding:28,border:"1px solid var(--border)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minWidth:196}}>
-                  <ScoreRing score={s}/>
+                  <ScoreRing score={s} maxScore={questions.length > 0 ? questions.length * 100 : 100} />
                   <p style={{fontSize:12,color:"var(--text3)",margin:"14px 0 4px",textAlign:"center"}}>Overall Score</p>
-                  <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",margin:0}}>{s>=75?"Top performance!":s>=50?"Good effort":s>0?"Keep going!":"No answers submitted"}</p>
+                  <p style={{fontSize:13,color:"var(--text2)",textAlign:"center",margin:0}}>{(s / (questions.length > 0 ? questions.length * 100 : 100)) >= 0.75?"Top performance!":(s / (questions.length > 0 ? questions.length * 100 : 100)) >= 0.5?"Good effort":s>0?"Keep going!":"No answers submitted"}</p>
                 </div>
                 <div className="glass" style={{borderRadius:22,padding:24,border:"1px solid var(--border)"}}>
                   <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--text)",margin:"0 0 16px"}}>Score Breakdown</p>

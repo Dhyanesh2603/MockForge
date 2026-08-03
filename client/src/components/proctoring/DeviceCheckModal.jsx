@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { AudioNoiseAnalyzer } from "../../utils/audioNoiseAnalyzer";
 
 export default function DeviceCheckModal({ onReady, onCancel }) {
   const [cameraActive, setCameraActive] = useState(false);
@@ -60,25 +61,22 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
         videoRef.current.srcObject = stream;
       }
 
-      // Audio volume meter
+      // Audio volume meter with calibrated baseline noise floor
       if (stream.getAudioTracks().length > 0) {
         try {
           const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
           const source = audioCtx.createMediaStreamSource(stream);
           const analyser = audioCtx.createAnalyser();
-          analyser.fftSize = 64;
+          analyser.fftSize = 512;
           source.connect(analyser);
 
           audioCtxRef.current = audioCtx;
-          const dataArray = new Uint8Array(analyser.frequencyBinCount);
+          const noiseAnalyzer = new AudioNoiseAnalyzer(audioCtx, analyser);
 
           const meterInterval = setInterval(() => {
             if (!analyser) return;
-            analyser.getByteFrequencyData(dataArray);
-            let sum = 0;
-            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-            const avg = sum / dataArray.length;
-            setMicVolume(Math.min(100, Math.round((avg / 128) * 100)));
+            const metrics = noiseAnalyzer.analyze();
+            setMicVolume(Math.min(100, Math.round((metrics.overallLevel / 120) * 100)));
           }, 100);
 
           return () => clearInterval(meterInterval);

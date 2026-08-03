@@ -189,7 +189,7 @@ Return ONLY a valid JSON object with these exact keys:
       const comm = Math.max(0, Math.min(100, Number(evaluation.communicationScore ?? evaluation.communication_score) || 0));
       const clar = Math.max(0, Math.min(100, Number(evaluation.clarityScore ?? evaluation.clarity_score) || 0));
 
-      // Sanity cap: score cannot exceed proportion of answered questions + small buffer
+      // Sanity cap for category scores: cannot exceed proportion of answered questions + small buffer
       const maxReasonable = Math.min(100, Math.round((answeredCount / totalQCount) * 100) + 10);
 
       // Parse per-question scores — ensure it's an array of the right length
@@ -231,8 +231,10 @@ Return ONLY a valid JSON object with these exact keys:
         ? (evaluation.strongTopics || evaluation.strong_topics).map(String)
         : [];
 
+      const calculatedOverallScore = questionScores.reduce((acc, curr) => acc + curr, 0);
+
       return {
-        overallScore: Math.min(overall, maxReasonable),
+        overallScore: calculatedOverallScore,
         technicalScore: Math.min(tech, maxReasonable),
         communicationScore: Math.min(comm, maxReasonable),
         clarityScore: Math.min(clar, maxReasonable),
