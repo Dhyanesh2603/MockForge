@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { TrendingUp, MapPin, Bot, BarChart3, Lightbulb, CheckCircle2, AlertTriangle, Target, Trophy, Sparkles } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -137,7 +139,7 @@ function QStrip({questions,scores,critiques,answers}){
 }
 
 /* ── Section card ───────────────────────────── */
-function Sec({icon,title,content,accent}){
+function Sec({icon: Icon,title,content,accent}){
   const m={
     green:{br:"rgba(52,211,153,.2)",hbg:"rgba(52,211,153,.1)",tc:"#34d399"},
     red:  {br:"rgba(248,113,113,.2)",hbg:"rgba(248,113,113,.1)",tc:"#f87171"},
@@ -148,7 +150,7 @@ function Sec({icon,title,content,accent}){
   return(
     <div className="glass" style={{borderRadius:18,border:`1px solid ${s.br}`,overflow:"hidden"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"13px 20px",background:s.hbg,borderBottom:`1px solid ${s.br}`}}>
-        <span style={{fontSize:16}}>{icon}</span>
+        {Icon && <MotionIcon icon={Icon} size={16} color={s.tc} animate="hover" />}
         <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:14,color:s.tc,margin:0}}>{title}</h3>
       </div>
       <div style={{padding:"16px 20px"}}>
@@ -306,10 +308,10 @@ export default function ResultPage(){
               )}
 
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
-                <Sec icon="💪" title="Strengths" content={result?.strengths} accent="green"/>
-                <Sec icon="📍" title="Areas to Improve" content={result?.weaknesses} accent="red"/>
+                <Sec icon={TrendingUp} title="Strengths" content={result?.strengths} accent="green"/>
+                <Sec icon={MapPin} title="Areas to Improve" content={result?.weaknesses} accent="red"/>
               </div>
-              <Sec icon="🤖" title="AI Feedback" content={result?.feedback} accent="blue"/>
+              <Sec icon={Bot} title="AI Feedback" content={result?.feedback} accent="blue"/>
               
               {/* AI Speech & Confidence Analytics Card */}
               {(() => {
@@ -318,7 +320,7 @@ export default function ResultPage(){
                   <div className="glass" style={{ borderRadius: 22, padding: 24, border: "1px solid var(--border)" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ fontSize: 20 }}>📊</span>
+                        <MotionIcon icon={BarChart3} size={20} color="var(--forge)" animate="hover" />
                         <div>
                           <h3 style={{ fontFamily: "Syne, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--text)", margin: 0 }}>
                             AI Speech & Delivery Analytics
@@ -357,7 +359,9 @@ export default function ResultPage(){
 
                     {speechStats.recommendations.length > 0 && (
                       <div style={{ padding: 12, borderRadius: 12, background: "rgba(var(--forge-rgb), 0.06)", border: "1px solid rgba(var(--forge-rgb), 0.2)" }}>
-                        <strong style={{ fontSize: 12, color: "var(--forge)", display: "block", marginBottom: 4 }}>💡 Delivery Recommendations:</strong>
+                        <strong style={{ fontSize: 12, color: "var(--forge)", display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                          <MotionIcon icon={Lightbulb} size={14} color="var(--forge)" /> Delivery Recommendations:
+                        </strong>
                         <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "var(--text2)", lineHeight: 1.6 }}>
                           {speechStats.recommendations.map((rec, i) => (
                             <li key={i}>{rec}</li>
@@ -440,7 +444,7 @@ export default function ResultPage(){
                   </div>
                 </div>
               )}
-              <Sec icon="🤖" title="Detailed AI Feedback" content={result?.feedback} accent="blue"/>
+              <Sec icon={Bot} title="Detailed AI Feedback" content={result?.feedback} accent="blue"/>
             </div>
           )}
 
@@ -449,7 +453,9 @@ export default function ResultPage(){
             <div style={{display:"flex",flexDirection:"column",gap:18}}>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}}>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid rgba(52,211,153,.25)",background:"rgba(52,211,153,.04)"}}>
-                  <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#34d399",margin:"0 0 14px"}}>✅ Strong Topics</p>
+                  <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#34d399",margin:"0 0 14px",display:"flex",alignItems:"center",gap:6}}>
+                    <MotionIcon icon={CheckCircle2} size={16} color="#34d399" /> Strong Topics
+                  </p>
                   {strongTopics.length>0?strongTopics.map(t=>(
                     <div key={t} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <div style={{width:7,height:7,borderRadius:"50%",background:"#34d399",flexShrink:0}}/>
@@ -458,7 +464,9 @@ export default function ResultPage(){
                   )):<p style={{fontSize:13,color:"var(--text3)"}}>No strong topics identified yet.</p>}
                 </div>
                 <div className="glass" style={{borderRadius:22,padding:22,border:"1px solid rgba(248,113,113,.25)",background:"rgba(248,113,113,.04)"}}>
-                  <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#f87171",margin:"0 0 14px"}}>⚠️ Skill Gaps</p>
+                  <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"#f87171",margin:"0 0 14px",display:"flex",alignItems:"center",gap:6}}>
+                    <MotionIcon icon={AlertTriangle} size={16} color="#f87171" /> Skill Gaps
+                  </p>
                   {skillGaps.length>0?skillGaps.map(t=>(
                     <div key={t} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
                       <div style={{width:7,height:7,borderRadius:"50%",background:"#f87171",flexShrink:0}}/>
@@ -487,7 +495,7 @@ export default function ResultPage(){
                         <div style={{height:9,background:"var(--bg3)",borderRadius:999,overflow:"hidden"}}>
                           <div className="chart-bar" style={{height:"100%",background:`linear-gradient(90deg,${color}99,${color})`,borderRadius:999,width:`${value}%`}}/>
                         </div>
-                        {value<60&&<p style={{fontSize:12,color:"var(--text3)",margin:"5px 0 0"}}>💡 Practice more {label.toLowerCase()} in your next session</p>}
+                        {value<60&&<p style={{fontSize:12,color:"var(--text3)",margin:"5px 0 0",display:"flex",alignItems:"center",gap:5}}><MotionIcon icon={Lightbulb} size={13} color="var(--text3)" /> Practice more {label.toLowerCase()} in your next session</p>}
                       </div>
                     );
                   })}
@@ -496,7 +504,9 @@ export default function ResultPage(){
 
               {/* Improvement plan */}
               <div style={{borderRadius:22,padding:22,background:"rgba(var(--forge-rgb),.07)",border:"1px solid rgba(var(--forge-rgb),.2)"}}>
-                <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--forge)",margin:"0 0 14px"}}>🎯 Recommended Improvement Plan</p>
+                <p style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:15,color:"var(--forge)",margin:"0 0 14px",display:"flex",alignItems:"center",gap:6}}>
+                  <MotionIcon icon={Target} size={16} color="var(--forge)" animate="pulse" /> Recommended Improvement Plan
+                </p>
                 {bars.filter(b=>b.value<75).sort((a,b)=>a.value-b.value).slice(0,3).map((b,i)=>(
                   <div key={b.label} style={{display:"flex",gap:12,alignItems:"flex-start",marginBottom:10}}>
                     <div className="bg-forge-gradient" style={{width:22,height:22,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:11,color:"#fff",fontWeight:700}}>{i+1}</div>
@@ -505,7 +515,7 @@ export default function ResultPage(){
                     </p>
                   </div>
                 ))}
-                {bars.filter(b=>b.value<75).length===0&&<p style={{fontSize:13,color:"var(--green)"}}>🎉 You're above 75 in all areas!</p>}
+                {bars.filter(b=>b.value<75).length===0&&<p style={{fontSize:13,color:"var(--green)",display:"flex",alignItems:"center",gap:6}}><MotionIcon icon={Sparkles} size={15} color="var(--green)" animate="bounce" /> You're above 75 in all areas!</p>}
               </div>
             </div>
           )}

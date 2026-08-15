@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Volume2, VolumeX, Mic, MicOff } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 /**
  * VoiceInterviewerControls
@@ -289,7 +291,8 @@ export default function VoiceInterviewerControls({
               cursor: "pointer",
             }}
           >
-            <span>{isSpeaking ? "🔊 Pause AI Voice" : "📢 Read Question"}</span>
+            <MotionIcon icon={isSpeaking ? VolumeX : Volume2} size={15} animate={isSpeaking ? "pulse" : "hover"} />
+            <span>{isSpeaking ? "Pause AI Voice" : "Read Question"}</span>
           </button>
 
           {voices.length > 0 && (
@@ -340,16 +343,8 @@ export default function VoiceInterviewerControls({
             boxShadow: isListening ? "0 0 14px rgba(239,68,68,0.4)" : "none",
           }}
         >
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: isListening ? "#fff" : "var(--forge)",
-              animation: isListening ? "pulseGlow 1s infinite" : "none",
-            }}
-          />
-          <span>{isListening ? "🎙️ Listening... (Click to Stop)" : "🎙️ Voice Answer"}</span>
+          <MotionIcon icon={isListening ? MicOff : Mic} size={15} animate={isListening ? "pulse" : "hover"} />
+          <span>{isListening ? "Listening... (Click to Stop)" : "Voice Answer"}</span>
         </button>
       </div>
 

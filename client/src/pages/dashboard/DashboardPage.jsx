@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FileText, CheckCircle2, Clock, Star, Lightbulb, Check, TrendingUp, TrendingDown, Brain, Sparkles } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -56,7 +58,7 @@ function MiniRadar({ barItems }) {
 }
 
 /* ── Stat card ───────────────────────────────── */
-function Stat({emoji,label,value,sub,ac}){
+function Stat({icon: Icon,label,value,sub,ac}){
   const bg={blue:"rgba(56,189,248,.1)",green:"rgba(52,211,153,.1)",amber:"rgba(251,191,36,.1)",violet:"rgba(167,139,250,.1)"};
   const br={blue:"rgba(56,189,248,.22)",green:"rgba(52,211,153,.22)",amber:"rgba(251,191,36,.22)",violet:"rgba(167,139,250,.22)"};
   const tc={blue:"#38bdf8",green:"#34d399",amber:"#fbbf24",violet:"#a78bfa"};
@@ -65,7 +67,7 @@ function Stat({emoji,label,value,sub,ac}){
       onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-3px)";e.currentTarget.style.boxShadow="0 10px 30px rgba(0,0,0,.15)"}}
       onMouseLeave={e=>{e.currentTarget.style.transform="none";e.currentTarget.style.boxShadow="none"}}
     >
-      <div style={{fontSize:22,marginBottom:10}}>{emoji}</div>
+      <div style={{marginBottom:10}}><MotionIcon icon={Icon} size={22} color={tc[ac]} animate="hover" /></div>
       <p style={{fontSize:12,color:"var(--text3)",margin:"0 0 4px"}}>{label}</p>
       <p style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:26,color:tc[ac],margin:"0 0 2px"}}>{value}</p>
       {sub&&<p style={{fontSize:11,color:"var(--text3)",margin:0}}>{sub}</p>}
@@ -91,8 +93,8 @@ function Card({interview}){
           <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:16,color:"var(--text)",margin:"0 0 8px",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{interview.role}</h3>
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
             <span style={{fontSize:11,padding:"2px 9px",borderRadius:999,background:`${dc}18`,color:dc,border:`1px solid ${dc}38`,fontWeight:600}}>{interview.difficulty}</span>
-            <span style={{fontSize:11,padding:"2px 9px",borderRadius:999,background:done?"rgba(52,211,153,.1)":"rgba(251,191,36,.1)",color:done?"#34d399":"#fbbf24",border:done?"1px solid rgba(52,211,153,.28)":"1px solid rgba(251,191,36,.28)",fontWeight:600}}>
-              {done?"✓ Done":"⏳ Progress"}
+            <span style={{fontSize:11,padding:"2px 9px",borderRadius:999,background:done?"rgba(52,211,153,.1)":"rgba(251,191,36,.1)",color:done?"#34d399":"#fbbf24",border:done?"1px solid rgba(52,211,153,.28)":"1px solid rgba(251,191,36,.28)",fontWeight:600,display:"inline-flex",alignItems:"center",gap:4}}>
+              {done ? <><MotionIcon icon={Check} size={11} color="#34d399" /> Done</> : <><MotionIcon icon={Clock} size={11} color="#fbbf24" /> Progress</>}
             </span>
           </div>
         </div>
@@ -178,8 +180,8 @@ export default function DashboardPage(){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:36,flexWrap:"wrap",gap:16}}>
           <div>
             <p style={{fontFamily:"monospace",fontSize:11,color:"var(--forge)",textTransform:"uppercase",letterSpacing:".1em",margin:"0 0 8px"}}>Dashboard</p>
-            <h1 style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:"clamp(1.7rem,3vw,2.4rem)",color:"var(--text)",margin:"0 0 6px"}}>
-              Hey, {user?.displayName?.split(" ")[0]} 👋
+            <h1 style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:"clamp(1.7rem,3vw,2.4rem)",color:"var(--text)",margin:"0 0 6px",display:"flex",alignItems:"center",gap:8}}>
+              Hey, {user?.displayName?.split(" ")[0]} <MotionIcon icon={Sparkles} size={24} color="var(--forge)" animate="hover" />
             </h1>
             <p style={{color:"var(--text2)",fontSize:14,margin:0}}>
               {avg>0?`Your average score is ${avg}/100. `:""}Track progress and jump back in.
@@ -193,10 +195,10 @@ export default function DashboardPage(){
 
         {/* Stats */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(170px,1fr))",gap:14,marginBottom:36}}>
-          <Stat emoji="📋" label="Total" value={total} ac="blue"/>
-          <Stat emoji="✅" label="Completed" value={completed} sub={total>0?`${Math.round((completed/total)*100)}%`:""} ac="green"/>
-          <Stat emoji="⏳" label="In Progress" value={inProg} ac="amber"/>
-          <Stat emoji="⭐" label="Avg Score" value={avg>0?avg:"—"} sub={avg>0?"/100":""} ac="violet"/>
+          <Stat icon={FileText} label="Total" value={total} ac="blue"/>
+          <Stat icon={CheckCircle2} label="Completed" value={completed} sub={total>0?`${Math.round((completed/total)*100)}%`:""} ac="green"/>
+          <Stat icon={Clock} label="In Progress" value={inProg} ac="amber"/>
+          <Stat icon={Star} label="Avg Score" value={avg>0?avg:"—"} sub={avg>0?"/100":""} ac="violet"/>
         </div>
 
         {/* Skills + trend row */}
@@ -244,8 +246,8 @@ export default function DashboardPage(){
                     })}
                   </div>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:12,color:"var(--text3)"}}>
-                      {trend[trend.length-1]>trend[0]?"📈 Improving!":"📉 Keep practicing"}
+                    <span style={{fontSize:12,color:"var(--text3)",display:"inline-flex",alignItems:"center",gap:4}}>
+                      {trend[trend.length-1]>trend[0]?<><MotionIcon icon={TrendingUp} size={13} color="#34d399" /> Improving!</>:<><MotionIcon icon={TrendingDown} size={13} color="#f87171" /> Keep practicing</>}
                     </span>
                     <span style={{fontSize:12,fontFamily:"monospace",color:"var(--text2)"}}>
                       Δ {trend[trend.length-1]-trend[0]>0?"+":""}{trend[trend.length-1]-trend[0]}
@@ -261,7 +263,9 @@ export default function DashboardPage(){
               {/* Weakest skill callout */}
               {skillBars.length>0&&(
                 <div style={{marginTop:20,padding:"12px 14px",borderRadius:14,background:"rgba(var(--forge-rgb),.07)",border:"1px solid rgba(var(--forge-rgb),.18)"}}>
-                  <p style={{fontSize:13,color:"var(--forge)",margin:"0 0 4px",fontWeight:600}}>💡 Top improvement area</p>
+                  <p style={{fontSize:13,color:"var(--forge)",margin:"0 0 4px",fontWeight:600,display:"flex",alignItems:"center",gap:6}}>
+                    <MotionIcon icon={Lightbulb} size={14} color="var(--forge)" /> Top improvement area
+                  </p>
                   <p style={{fontSize:13,color:"var(--text2)",margin:0}}>
                     {skillBars.sort((a,b)=>a.value-b.value)[0].label} — score {skillBars.sort((a,b)=>a.value-b.value)[0].value}/100
                   </p>
@@ -291,7 +295,7 @@ export default function DashboardPage(){
           </div>
         ):filtered.length===0?(
           <div className="glass" style={{borderRadius:22,padding:"60px 24px",textAlign:"center",border:"1px solid var(--border)"}}>
-            <div style={{fontSize:48,marginBottom:16}}>🧠</div>
+            <div style={{marginBottom:16}}><MotionIcon icon={Brain} size={48} color="var(--forge)" animate="pulse" /></div>
             <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:20,color:"var(--text)",marginBottom:8}}>No interviews yet</h3>
             <p style={{color:"var(--text2)",fontSize:14,marginBottom:24,maxWidth:320,margin:"0 auto 24px"}}>Create your first mock interview and start sharpening your skills.</p>
             <Link to="/create-interview" className="bg-forge-gradient btn-press"

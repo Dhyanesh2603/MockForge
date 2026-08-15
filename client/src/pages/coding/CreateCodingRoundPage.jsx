@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Zap, Rocket } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -258,11 +260,19 @@ export default function CreateCodingRoundPage() {
                 fontSize: 15,
                 fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: "0 10px 30px rgba(var(--forge-rgb),.3)",
-                marginTop: 8,
               }}
             >
-              {loading ? "⚡ Generating AI Coding Challenges..." : "🚀 Launch AI Coding Arena"}
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {loading ? (
+                  <>
+                    <MotionIcon icon={Zap} size={18} animate="spin" /> Generating AI Coding Challenges...
+                  </>
+                ) : (
+                  <>
+                    <MotionIcon icon={Rocket} size={18} animate="bounce" /> Launch AI Coding Arena
+                  </>
+                )}
+              </span>
             </button>
           </div>
         </main>

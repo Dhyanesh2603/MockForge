@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { Swords, Handshake, Crown, Trophy } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -119,9 +121,9 @@ export default function ClashResultPage() {
         <main style={{ maxWidth: 900, margin: "0 auto", padding: "36px 24px 80px" }}>
           {/* Winner Banner */}
           <div className="glass glow-red-sm" style={{ borderRadius: 28, padding: 32, border: "1px solid var(--border)", textAlign: "center", marginBottom: 32 }}>
-            <span style={{ fontSize: 44, display: "block", marginBottom: 8 }}>
-              {isTie ? "🤝" : isMeWinner ? "👑" : "🏆"}
-            </span>
+            <div style={{ marginBottom: 12 }}>
+              <MotionIcon icon={isTie ? Handshake : isMeWinner ? Crown : Trophy} size={44} color={isTie ? "#fbbf24" : isMeWinner ? "#eab308" : "#f43f5e"} animate="bounce" />
+            </div>
             <span style={{ fontSize: 12, fontFamily: "monospace", color: "#f43f5e", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".15em" }}>
               MATCH RESULT
             </span>
@@ -268,8 +270,8 @@ export default function ClashResultPage() {
               ← Dashboard
             </button>
             <Link to="/clash" className="btn-press glow-red-sm"
-              style={{ padding: "11px 22px", borderRadius: 12, background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
-              Play Another Clash ⚔️
+              style={{ padding: "11px 22px", borderRadius: 12, background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "#fff", textDecoration: "none", fontSize: 14, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 8 }}>
+              Play Another Clash <MotionIcon icon={Swords} size={16} animate="hover" />
             </Link>
           </div>
         </main>

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Zap, AlertTriangle, Swords, ShieldCheck, Unlock, Key, Lightbulb } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -82,8 +84,8 @@ export default function ClashLobbyPage() {
         <main style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" }}>
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <span style={{ fontFamily: "monospace", fontSize: 11, color: "#f43f5e", textTransform: "uppercase", letterSpacing: ".15em", fontWeight: 700 }}>
-              ⚡ REAL-TIME MULTIPLAYER
+            <span style={{ fontFamily: "monospace", fontSize: 11, color: "#f43f5e", textTransform: "uppercase", letterSpacing: ".15em", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <MotionIcon icon={Zap} size={14} color="#f43f5e" animate="pulse" /> REAL-TIME MULTIPLAYER
             </span>
             <h1 style={{
               fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "clamp(2.2rem, 5vw, 3.2rem)",
@@ -101,9 +103,10 @@ export default function ClashLobbyPage() {
             <div style={{
               padding: "12px 18px", borderRadius: 14, background: "rgba(248,113,113,0.1)",
               border: "1px solid rgba(248,113,113,0.3)", color: "#f87171", fontSize: 14,
-              marginBottom: 24, textAlign: "center"
+              marginBottom: 24, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 8
             }}>
-              ⚠️ {error}
+              <MotionIcon icon={AlertTriangle} size={16} color="#f87171" animate="bounce" />
+              <span>{error}</span>
             </div>
           )}
 
@@ -111,7 +114,7 @@ export default function ClashLobbyPage() {
             {/* Create Room Card */}
             <div className="glass glow-red-sm" style={{ borderRadius: 24, padding: 28, border: "1px solid var(--border)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <span style={{ fontSize: 24 }}>⚔️</span>
+                <MotionIcon icon={Swords} size={24} color="#f43f5e" animate="hover" />
                 <div>
                   <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", margin: 0 }}>
                     Create a Match
@@ -254,9 +257,10 @@ export default function ClashLobbyPage() {
                         border: proctored ? "1px solid #34d399" : "1px solid var(--border)",
                         background: proctored ? "rgba(52,211,153,0.12)" : "var(--bg2)",
                         color: proctored ? "#34d399" : "var(--text2)",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4
                       }}
                     >
-                      🛡️ Proctored
+                      <MotionIcon icon={ShieldCheck} size={14} color="#34d399" /> Proctored
                     </button>
                     <button
                       type="button"
@@ -266,9 +270,10 @@ export default function ClashLobbyPage() {
                         border: !proctored ? "1px solid #f43f5e" : "1px solid var(--border)",
                         background: !proctored ? "rgba(244,63,94,0.12)" : "var(--bg2)",
                         color: !proctored ? "#f43f5e" : "var(--text2)",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4
                       }}
                     >
-                      🔓 Unproctored
+                      <MotionIcon icon={Unlock} size={14} color="#f43f5e" /> Unproctored
                     </button>
                   </div>
                 </div>
@@ -292,7 +297,7 @@ export default function ClashLobbyPage() {
             <div className="glass" style={{ borderRadius: 24, padding: 28, border: "1px solid var(--border)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                  <span style={{ fontSize: 24 }}>🔑</span>
+                  <MotionIcon icon={Key} size={24} color="var(--forge)" animate="hover" />
                   <div>
                     <h2 style={{ fontFamily: "Syne, sans-serif", fontSize: 18, fontWeight: 700, color: "var(--text)", margin: 0 }}>
                       Join Match
@@ -337,8 +342,9 @@ export default function ClashLobbyPage() {
 
               {/* Tips */}
               <div style={{ padding: "14px 16px", borderRadius: 16, background: "var(--bg3)", border: "1px solid var(--border)", marginTop: 24 }}>
-                <p style={{ fontSize: 12, color: "var(--text2)", margin: 0, lineHeight: 1.5 }}>
-                  💡 <strong>How it works:</strong> Both candidates get the exact same AI questions at the same time. The AI evaluates depth, accuracy, and clarity to declare a winner!
+                <p style={{ fontSize: 12, color: "var(--text2)", margin: 0, lineHeight: 1.5, display: "flex", alignItems: "center", gap: 6 }}>
+                  <MotionIcon icon={Lightbulb} size={14} color="var(--forge)" />
+                  <span><strong>How it works:</strong> Both candidates get the exact same AI questions at the same time. The AI evaluates depth, accuracy, and clarity to declare a winner!</span>
                 </p>
               </div>
             </div>

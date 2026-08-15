@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Building, Zap, Laptop, Database, Cloud, Cpu, X } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import NavBar from "../../components/NavBar";
 import VoiceInterviewerControls from "../../components/voice/VoiceInterviewerControls";
 import api from "../../services/api";
@@ -15,42 +17,42 @@ const ROLE_RUBRICS = [
 const FEATURED_TOPICS = [
   {
     title: "System Design & Distributed Systems",
-    icon: "🏗️",
+    icon: Building,
     desc: "Microservices, Load Balancing, Redis Caching, Sharding, Message Queues",
     rubric: "Backend Engineer",
     badge: "High Frequency",
   },
   {
     title: "Data Structures & Algorithms",
-    icon: "⚡",
+    icon: Zap,
     desc: "Arrays, Dynamic Programming, Trees & Graphs, Complexity Analysis",
     rubric: "Full Stack Engineer",
     badge: "Core Coding",
   },
   {
     title: "Frontend Architecture & React",
-    icon: "💻",
+    icon: Laptop,
     desc: "Virtual DOM, Redux, Performance Optimization, Hydration & Rendering",
     rubric: "Frontend Engineer",
     badge: "UI / UX Tech",
   },
   {
     title: "Databases, SQL Indexing & Concurrency",
-    icon: "🗄️",
+    icon: Database,
     desc: "ACID Transactions, Pessimistic/Optimistic Locking, Isolation Levels",
     rubric: "Backend Engineer",
     badge: "Data Layer",
   },
   {
     title: "DevOps, Containers & Kubernetes",
-    icon: "☁️",
+    icon: Cloud,
     desc: "Docker, K8s Ingress, CI/CD Pipelines, Infrastructure as Code",
     rubric: "DevOps & Cloud",
     badge: "Cloud Infra",
   },
   {
     title: "AI, Machine Learning & LLM Systems",
-    icon: "🤖",
+    icon: Cpu,
     desc: "Model Fine-Tuning, RAG Pipelines, Vector Embeddings, PyTorch",
     rubric: "Data Science & ML",
     badge: "GenAI Tech",
@@ -274,7 +276,7 @@ export default function AdaptiveInterviewPage() {
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <span style={{ fontSize: 22 }}>{item.icon}</span>
+                      <MotionIcon icon={item.icon} size={22} color="var(--forge)" animate="hover" />
                       <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, background: "rgba(99,102,241,0.15)", color: "var(--forge)", fontFamily: "monospace" }}>
                         {item.badge}
                       </span>
@@ -557,7 +559,7 @@ export default function AdaptiveInterviewPage() {
                     justifyContent: "center",
                   }}
                 >
-                  ✕
+                  <MotionIcon icon={X} size={18} />
                 </button>
               </div>
 

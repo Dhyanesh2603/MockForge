@@ -1,5 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Check, CheckCircle2, Lightbulb, Rocket, X } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import NavBar from "../../components/NavBar";
 import CodeCompilerSandbox from "../../components/compiler/CodeCompilerSandbox";
 
@@ -273,7 +275,13 @@ export default function CodingArenaPage() {
                 cursor: isSubmitted ? "not-allowed" : "pointer",
               }}
             >
-              {isSubmitted ? "✓ Challenge Submitted" : "Finish Coding Challenge"}
+              {isSubmitted ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                  <MotionIcon icon={Check} size={15} color="#fff" /> Challenge Submitted
+                </span>
+              ) : (
+                "Finish Coding Challenge"
+              )}
             </button>
 
             <button
@@ -351,7 +359,7 @@ export default function CodingArenaPage() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    Question {idx + 1} {solutions[p.id] ? "✓" : ""}
+                    Question {idx + 1} {solutions[p.id] ? <MotionIcon icon={Check} size={12} color={currentIdx === idx ? "#fff" : "var(--forge)"} /> : ""}
                   </button>
                 ))}
               </div>
@@ -428,7 +436,7 @@ export default function CodingArenaPage() {
 
             {/* Recommended Language Banner */}
             <div style={{ marginTop: 14, padding: "10px 14px", borderRadius: 12, background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 16 }}>💡</span>
+              <MotionIcon icon={Lightbulb} size={18} color="var(--accent-cyan)" />
               <div>
                 <span style={{ fontSize: 12, fontWeight: 800, color: "var(--accent-cyan)", display: "block" }}>
                   Recommended Language: {recommendedLang.label}
@@ -468,14 +476,14 @@ export default function CodingArenaPage() {
             {/* Test Results Display — SECURED: NEVER exposes hidden test case inputs */}
             {currentResults.length > 0 && (
               <div style={{ marginTop: 14, padding: 14, borderRadius: 14, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)" }}>
-                <strong style={{ fontSize: 13, color: "#10b981", display: "block", marginBottom: 8 }}>
-                  ✓ Evaluation Complete ({passedCount}/{totalCount} Test Cases Passed)
+                <strong style={{ fontSize: 13, color: "#10b981", display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <MotionIcon icon={CheckCircle2} size={15} color="#10b981" /> Evaluation Complete ({passedCount}/{totalCount} Test Cases Passed)
                 </strong>
                 {currentResults.map((res) => (
                   <div key={res.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontFamily: "monospace", color: "var(--text2)", marginTop: 4, padding: "4px 8px", background: "var(--bg2)", borderRadius: 6 }}>
                     <span>{res.label}</span>
-                    <span style={{ color: res.passed ? "#10b981" : "#ef4444", fontWeight: 800 }}>
-                      {res.passed ? "PASSED ✓ (0.02s)" : "FAILED ✗"}
+                    <span style={{ color: res.passed ? "#10b981" : "#ef4444", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {res.passed ? <><MotionIcon icon={Check} size={11} color="#10b981" /> PASSED (0.02s)</> : <><MotionIcon icon={X} size={11} color="#ef4444" /> FAILED</>}
                     </span>
                   </div>
                 ))}
@@ -675,7 +683,9 @@ export default function CodingArenaPage() {
                 <strong style={{ fontSize: 24, color: "#10b981", fontFamily: "Syne, sans-serif", display: "block", margin: "2px 0" }}>
                   {evaluationReport.totalPassedHidden} Correct
                 </strong>
-                <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700 }}>✓ Passed</span>
+                <span style={{ fontSize: 11, color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <MotionIcon icon={CheckCircle2} size={13} color="#10b981" /> Passed
+                </span>
               </div>
 
               <div style={{ padding: 16, borderRadius: 16, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)" }}>
@@ -683,7 +693,9 @@ export default function CodingArenaPage() {
                 <strong style={{ fontSize: 24, color: "var(--red)", fontFamily: "Syne, sans-serif", display: "block", margin: "2px 0" }}>
                   {evaluationReport.totalFailedHidden} Wrong
                 </strong>
-                <span style={{ fontSize: 11, color: "var(--red)", fontWeight: 700 }}>✗ Failed</span>
+                <span style={{ fontSize: 11, color: "var(--red)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <MotionIcon icon={X} size={13} color="var(--red)" /> Failed
+                </span>
               </div>
             </div>
 
@@ -761,9 +773,14 @@ export default function CodingArenaPage() {
                   fontWeight: 700,
                   cursor: "pointer",
                   boxShadow: "0 4px 16px rgba(99,102,241,0.35)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
               >
-                Return to Dashboard 🚀
+                <span>Return to Dashboard</span>
+                <MotionIcon icon={Rocket} size={16} animate="bounce" />
               </button>
             </div>
           </div>

@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Camera, Eye, ShieldAlert, AlertTriangle } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 export default function ProctoringOverlay({
   videoRef,
@@ -93,6 +95,7 @@ export default function ProctoringOverlay({
             maxWidth: "90vw",
           }}
         >
+          <MotionIcon icon={warningToast.type === "DISQUALIFIED" ? ShieldAlert : AlertTriangle} size={18} color="#fff" animate="bounce" />
           <span style={{ fontSize: 13, fontWeight: 800, padding: "2px 8px", borderRadius: 6, background: "rgba(0,0,0,0.2)" }}>
             {warningToast.type === "DISQUALIFIED" ? "DISQUALIFIED" : "WARNING"}
           </span>
@@ -184,8 +187,8 @@ export default function ProctoringOverlay({
                 textAlign: "center",
               }}
             >
-              <span style={{ fontSize: 20, marginBottom: 4 }}>📷</span>
-              <span style={{ fontSize: 11, lineHeight: 1.2 }}>Cam Inactive</span>
+              <MotionIcon icon={Camera} size={24} color="var(--text3)" />
+              <span style={{ fontSize: 11, lineHeight: 1.2, marginTop: 4 }}>Cam Inactive</span>
             </div>
           )}
 
@@ -260,8 +263,8 @@ export default function ProctoringOverlay({
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {eyeTrackingActive && (
-              <span style={{ fontSize: 10, color: "#34d399", fontFamily: "monospace" }} title="Eye tracking active">
-                👁️ Eye Guard
+              <span style={{ fontSize: 10, color: "#34d399", fontFamily: "monospace", display: "inline-flex", alignItems: "center", gap: 4 }} title="Eye tracking active">
+                <MotionIcon icon={Eye} size={12} color="#34d399" /> Eye Guard
               </span>
             )}
             <div

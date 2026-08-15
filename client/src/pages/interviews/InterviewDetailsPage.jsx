@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { Rocket, Pause, AlertTriangle, Flag, BookOpen } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import api from "../../services/api";
 import { useAdvancedProctoring } from "../../hooks/useAdvancedProctoring";
 import ProctoringOverlay from "../../components/proctoring/ProctoringOverlay";
@@ -37,8 +39,8 @@ function Countdown({ role, onDone }) {
             {n}
           </div>
         ):(
-          <div className="count-anim" style={{fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:"clamp(2rem,7vw,4rem)",color:"var(--green)"}}>
-            Go! 🚀
+          <div className="count-anim" style={{fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:"clamp(2rem,7vw,4rem)",color:"var(--green)",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+            Go! <MotionIcon icon={Rocket} size={36} color="var(--green)" animate="bounce" />
           </div>
         )}
         {role && <p style={{marginTop:20,fontSize:14,color:"var(--text2)"}}>{role}</p>}
@@ -53,7 +55,7 @@ function PauseModal({ onConfirm, onCancel }) {
     <div style={{position:"fixed",inset:0,zIndex:150,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
       <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.7)",backdropFilter:"blur(8px)"}} onClick={onCancel}/>
       <div className="glass afu" style={{position:"relative",borderRadius:22,padding:32,maxWidth:400,width:"100%",boxShadow:"0 24px 80px rgba(0,0,0,.5)",border:"1px solid var(--border)",textAlign:"center"}}>
-        <div style={{fontSize:42,marginBottom:14}}>⏸️</div>
+        <div style={{marginBottom:14}}><MotionIcon icon={Pause} size={42} color="var(--forge)" animate="pulse" /></div>
         <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:700,fontSize:20,color:"var(--text)",margin:"0 0 10px"}}>
           Pause Interview Session?
         </h3>
@@ -80,14 +82,14 @@ function ConfirmModal({ flagCount, onConfirm, onCancel }) {
       <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",backdropFilter:"blur(6px)"}} onClick={onCancel}/>
       <div className="glass afu" style={{position:"relative",borderRadius:22,padding:36,maxWidth:380,width:"100%",
                                          boxShadow:"0 24px 80px rgba(0,0,0,.4)",border:"1px solid var(--border)"}}>
-        <div style={{textAlign:"center",fontSize:40,marginBottom:16}}>⚠️</div>
+        <div style={{textAlign:"center",marginBottom:16}}><MotionIcon icon={AlertTriangle} size={40} color="#fbbf24" animate="bounce" /></div>
         <h3 style={{fontFamily:"Syne,sans-serif",fontWeight:600,fontSize:20,color:"var(--text)",textAlign:"center",margin:"0 0 10px"}}>Submit Interview?</h3>
         <p style={{color:"var(--text2)",fontSize:14,textAlign:"center",lineHeight:1.6,marginBottom:6}}>
           You cannot edit answers after submission.
         </p>
         {flagCount>0&&(
-          <p style={{color:"#fbbf24",fontSize:13,textAlign:"center",marginBottom:18}}>
-            🚩 You have {flagCount} flagged question{flagCount>1?"s":""} — review before submitting?
+          <p style={{color:"#fbbf24",fontSize:13,textAlign:"center",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+            <MotionIcon icon={Flag} size={14} color="#fbbf24" /> You have {flagCount} flagged question{flagCount>1?"s":""} — review before submitting?
           </p>
         )}
         <div style={{display:"flex",gap:12,marginTop:20}}>
@@ -339,27 +341,23 @@ export default function InterviewDetailsPage() {
             
             {started && !submitted && (
               <button
-                type="button"
-                onClick={() => {
-                  setShowPause(false);
-                  navigate("/dashboard");
-                }}
+                onClick={() => setShowPauseModal(true)}
                 className="btn-press"
                 style={{
-                  padding: "5px 12px", borderRadius: 999, border: "1px solid var(--border)",
+                  padding: "5px 12px", borderRadius: 8, border: "1px solid var(--border)",
                   background: "var(--surface)", color: "var(--text2)", fontSize: 12, fontWeight: 600,
-                  cursor: "pointer", display: "flex", alignItems: "center", gap: 4
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 6
                 }}
                 title="Pause and return to dashboard"
               >
-                ⏸️ Pause
+                <MotionIcon icon={Pause} size={13} /> Pause
               </button>
             )}
 
             <div style={{fontFamily:"monospace",fontWeight:700,fontSize:13,padding:"5px 12px",borderRadius:999,
-                         background:timerBg,color:timerC,border:`1px solid ${timerC}35`}}
+                         background:timerBg,color:timerC,border:`1px solid ${timerC}35`,display:"inline-flex",alignItems:"center",gap:4}}
                  className={timeLeft<300?"aps":""}>
-              {timeLeft<300?"⚠ ":""}{fmt(timeLeft)}
+              {timeLeft<300?<MotionIcon icon={AlertTriangle} size={12} color={timerC} animate="pulse" />:""}{fmt(timeLeft)}
             </div>
           </div>
         </div>
@@ -389,8 +387,8 @@ export default function InterviewDetailsPage() {
             {/* status badges */}
             {(isFlagged||isReview)&&(
               <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-                {isFlagged&&<span className="flag-badge" style={{fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600}}>🚩 Flagged</span>}
-                {isReview&&<span style={{fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.3)",color:"#a78bfa"}}>📖 Review Later</span>}
+                {isFlagged&&<span className="flag-badge" style={{fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600,display:"inline-flex",alignItems:"center",gap:4}}><MotionIcon icon={Flag} size={12} color="#fbbf24" /> Flagged</span>}
+                {isReview&&<span style={{fontSize:11,padding:"2px 10px",borderRadius:999,fontWeight:600,background:"rgba(167,139,250,.12)",border:"1px solid rgba(167,139,250,.3)",color:"#a78bfa",display:"inline-flex",alignItems:"center",gap:4}}><MotionIcon icon={BookOpen} size={12} color="#a78bfa" /> Review Later</span>}
               </div>
             )}
 
@@ -440,7 +438,7 @@ export default function InterviewDetailsPage() {
                           border:isFlagged?"1px solid rgba(251,191,36,.45)":"1px solid var(--border)",
                           background:isFlagged?"rgba(251,191,36,.1)":"var(--surface)",
                           color:isFlagged?"#fbbf24":"var(--text3)",transition:"all .2s"}}>
-                  🚩 {isFlagged?"Flagged":"Flag"}
+                  <MotionIcon icon={Flag} size={13} color={isFlagged?"#fbbf24":"currentColor"} /> {isFlagged?"Flagged":"Flag"}
                 </button>
                 {/* Review Later */}
                 <button onClick={toggleReview} className="btn-press"
@@ -448,7 +446,7 @@ export default function InterviewDetailsPage() {
                           border:isReview?"1px solid rgba(167,139,250,.45)":"1px solid var(--border)",
                           background:isReview?"rgba(167,139,250,.1)":"var(--surface)",
                           color:isReview?"#a78bfa":"var(--text3)",transition:"all .2s"}}>
-                  📖 {isReview?"Remove":"Review Later"}
+                  <MotionIcon icon={BookOpen} size={13} color={isReview?"#a78bfa":"currentColor"} /> {isReview?"Remove":"Review Later"}
                 </button>
               </div>
               <span style={{fontSize:11,color:"var(--text3)",fontFamily:"monospace"}}>{(answers[cur?.id]||"").length} chars</span>

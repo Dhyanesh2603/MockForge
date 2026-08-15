@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { ShieldCheck, AlertTriangle, Camera, Mic, CheckCircle2, Rocket } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 import { AudioNoiseAnalyzer } from "../../utils/audioNoiseAnalyzer";
 
 export default function DeviceCheckModal({ onReady, onCancel }) {
@@ -138,7 +140,9 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
           textAlign: "center",
         }}
       >
-        <div style={{ fontSize: 36, marginBottom: 8 }}>🛡️</div>
+        <div style={{ marginBottom: 12 }}>
+          <MotionIcon icon={ShieldCheck} size={42} color="var(--forge)" animate="pulse" />
+        </div>
         <h3
           style={{
             fontFamily: "Syne, sans-serif",
@@ -165,9 +169,13 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
               fontSize: 12,
               marginBottom: 16,
               textAlign: "left",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
-            ⚠️ {errorMsg}
+            <MotionIcon icon={AlertTriangle} size={16} color="#f87171" animate="bounce" />
+            <span>{errorMsg}</span>
           </div>
         )}
 
@@ -211,8 +219,8 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
                 padding: 16,
               }}
             >
-              <span style={{ fontSize: 32, marginBottom: 8 }}>📷</span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)" }}>
+              <MotionIcon icon={Camera} size={32} color="var(--text3)" className="mb-2" />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text2)", marginTop: 8 }}>
                 Camera is Off
               </span>
               <span style={{ fontSize: 11, color: "var(--text3)", marginTop: 4 }}>
@@ -238,7 +246,7 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
                 backdropFilter: "blur(4px)",
               }}
             >
-              <span style={{ fontSize: 11, color: "#fff" }}>🎤</span>
+              <MotionIcon icon={Mic} size={14} color="#fff" />
               <div
                 style={{
                   flex: 1,
@@ -280,9 +288,14 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
                   fontWeight: 700,
                   fontSize: 15,
                   cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
               >
-                {testing ? "Testing Devices..." : "📷 Enable Camera & Microphone"}
+                <MotionIcon icon={Camera} size={18} animate={testing ? "spin" : "hover"} />
+                <span>{testing ? "Testing Devices..." : "Enable Camera & Microphone"}</span>
               </button>
               {hasDeviceError && (
                 <button
@@ -297,9 +310,14 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
                     fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
                   }}
                 >
-                  ⚠️ Hardware Missing / Bypass to Start
+                  <MotionIcon icon={AlertTriangle} size={14} color="#fbbf24" />
+                  <span>Hardware Missing / Bypass to Start</span>
                 </button>
               )}
             </>
@@ -318,9 +336,15 @@ export default function DeviceCheckModal({ onReady, onCancel }) {
                 fontWeight: 800,
                 fontSize: 15,
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
               }}
             >
-              ✓ Devices Ready — Start Interview 🚀
+              <MotionIcon icon={CheckCircle2} size={18} />
+              <span>Devices Ready — Start Interview</span>
+              <MotionIcon icon={Rocket} size={18} animate="bounce" />
             </button>
           )}
 

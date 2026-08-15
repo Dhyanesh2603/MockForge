@@ -1,4 +1,6 @@
 import React from "react";
+import { ShieldCheck, CheckCircle2 } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 export default function ProctoringAuditCard({ proctoringData }) {
   const score = proctoringData?.integrityScore ?? 100;
@@ -27,7 +29,7 @@ export default function ProctoringAuditCard({ proctoringData }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 20 }}>🛡️</span>
+          <MotionIcon icon={ShieldCheck} size={22} color="var(--forge)" animate="pulse" />
           <div>
             <h3
               style={{
@@ -135,7 +137,7 @@ export default function ProctoringAuditCard({ proctoringData }) {
             gap: 10,
           }}
         >
-          <span style={{ fontSize: 18 }}>✅</span>
+          <MotionIcon icon={CheckCircle2} size={20} color="#34d399" />
           <p style={{ fontSize: 13, color: "var(--text2)", margin: 0 }}>
             Clean session! No tab switches, unusual noise, or suspicious events were detected.
           </p>

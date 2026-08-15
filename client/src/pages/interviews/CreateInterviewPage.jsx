@@ -1,5 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Check, ShieldCheck, Unlock, Zap, Lightbulb, Sparkles } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar";
@@ -46,7 +48,7 @@ const StepDot = ({ n, label, active, done }) => (
       border: active || done ? "1px solid rgba(var(--forge-rgb),.4)" : "1px solid var(--border)",
       color: done ? "#fff" : active ? "var(--forge)" : "var(--text3)",
     }}>
-      {done ? "✓" : n}
+      {done ? <MotionIcon icon={Check} size={14} color="#fff" /> : n}
     </div>
     <span style={{ fontSize: 13, fontWeight: active || done ? 600 : 400, color: active ? "var(--text)" : "var(--text3)" }}>
       {label}
@@ -292,8 +294,8 @@ export default function CreateInterviewPage() {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: proctored ? "#34d399" : "var(--text)" }}>
-                          🛡️ Proctored
+                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: proctored ? "#34d399" : "var(--text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <MotionIcon icon={ShieldCheck} size={16} color="#34d399" /> Proctored
                         </span>
                         <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 4, background: "rgba(52,211,153,0.2)", color: "#34d399", fontWeight: 700 }}>
                           RECOMMENDED
@@ -315,8 +317,8 @@ export default function CreateInterviewPage() {
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: !proctored ? "var(--forge)" : "var(--text)" }}>
-                          🔓 Unproctored
+                        <span style={{ fontFamily: "Syne,sans-serif", fontWeight: 700, fontSize: 14, color: !proctored ? "var(--forge)" : "var(--text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <MotionIcon icon={Unlock} size={16} color="var(--forge)" /> Unproctored
                         </span>
                       </div>
                       <p style={{ fontSize: 11, color: "var(--text3)", margin: 0, lineHeight: 1.4 }}>
@@ -337,8 +339,8 @@ export default function CreateInterviewPage() {
                 >
                   <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                     <div>
-                      <p style={{ fontFamily: "Syne,sans-serif", fontWeight: 600, fontSize: 15, color: "var(--text)", margin: "0 0 4px" }}>
-                        ⚡ Dynamic Difficulty Engine
+                      <p style={{ fontFamily: "Syne,sans-serif", fontWeight: 600, fontSize: 15, color: "var(--text)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <MotionIcon icon={Zap} size={16} color="var(--forge)" animate="pulse" /> Dynamic Difficulty Engine
                       </p>
                       <p style={{ fontSize: 13, color: "var(--text2)", margin: 0, lineHeight: 1.5 }}>
                         Questions adapt based on your responses — stronger answers unlock harder follow-ups.
@@ -373,8 +375,9 @@ export default function CreateInterviewPage() {
             {step === 3 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
                 <div style={{ padding: "12px 16px", borderRadius: 14, background: "rgba(var(--forge-rgb),.07)", border: "1px solid rgba(var(--forge-rgb),.2)" }}>
-                  <p style={{ fontSize: 13, color: "var(--forge)", margin: 0, lineHeight: 1.6 }}>
-                    💡 This context is sent directly to the AI. The more detail you provide, the more personalised and unique your questions will be.
+                  <p style={{ fontSize: 13, color: "var(--forge)", margin: 0, lineHeight: 1.6, display: "flex", alignItems: "center", gap: 8 }}>
+                    <MotionIcon icon={Lightbulb} size={16} color="var(--forge)" animate="bounce" />
+                    <span>This context is sent directly to the AI. The more detail you provide, the more personalised and unique your questions will be.</span>
                   </p>
                 </div>
 
@@ -469,7 +472,11 @@ export default function CreateInterviewPage() {
                     </svg>
                     Generating Questions…
                   </>
-                ) : "✦ Start Interview Session"}
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <MotionIcon icon={Sparkles} size={16} animate="hover" /> Start Interview Session
+                  </span>
+                )}
               </button>
             )}
           </div>

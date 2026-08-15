@@ -1,4 +1,6 @@
 import React from "react";
+import { Hand, Sun, UserX, Users, Volume2, MessageSquare, AlertTriangle, Pause } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 /**
  * ProctoringPauseOverlay — Full-screen overlay that pauses the test
@@ -7,12 +9,12 @@ import React from "react";
  */
 export default function ProctoringPauseOverlay({ reason, visibilityStatus, warningCount, maxWarnings }) {
   const icons = {
-    COVERED: "🖐️",
-    BLEACHED: "☀️",
-    FACE_MISSING: "👤",
-    MULTI_FACE: "👥",
-    AUDIO_BURST: "🔊",
-    AUDIO_SPEECH: "🗣️",
+    COVERED: Hand,
+    BLEACHED: Sun,
+    FACE_MISSING: UserX,
+    MULTI_FACE: Users,
+    AUDIO_BURST: Volume2,
+    AUDIO_SPEECH: MessageSquare,
   };
 
   const titles = {
@@ -24,7 +26,7 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus, warni
     AUDIO_SPEECH: "Background Speech Detected",
   };
 
-  const icon = icons[visibilityStatus] || "⚠️";
+  const IconComponent = icons[visibilityStatus] || AlertTriangle;
   const title = titles[visibilityStatus] || "Proctoring Alert";
 
   return (
@@ -76,10 +78,9 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus, warni
             alignItems: "center",
             justifyContent: "center",
             margin: "0 auto 24px",
-            animation: "pulseRing 2s ease-in-out infinite",
           }}
         >
-          <span style={{ fontSize: 36 }}>{icon}</span>
+          <MotionIcon icon={IconComponent} size={36} color="#f87171" animate="pulse" />
         </div>
 
         <h2
@@ -104,9 +105,14 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus, warni
             margin: "0 0 20px",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
           }}
         >
-          ⏸ TEST PAUSED
+          <MotionIcon icon={Pause} size={14} color="#fbbf24" />
+          TEST PAUSED
         </p>
 
         <p
@@ -198,10 +204,6 @@ export default function ProctoringPauseOverlay({ reason, visibilityStatus, warni
       </div>
 
       <style>{`
-        @keyframes pulseRing {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.08); opacity: 0.7; }
-        }
         @keyframes blink {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.3; }

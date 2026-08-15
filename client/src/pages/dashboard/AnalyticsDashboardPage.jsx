@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { Check } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import NavBar from "../../components/NavBar";
 import api from "../../services/api";
 
@@ -124,8 +126,8 @@ export default function AnalyticsDashboardPage() {
                 <strong style={{ fontSize: 26, color: "#10b981", display: "block", margin: "6px 0", fontFamily: "Syne, sans-serif" }}>
                   98%
                 </strong>
-                <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700 }}>
-                  ✓ High Proctoring Score
+                <span style={{ fontSize: 12, color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <MotionIcon icon={Check} size={13} color="#10b981" /> High Proctoring Score
                 </span>
               </div>
 

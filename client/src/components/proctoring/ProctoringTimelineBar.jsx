@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Film } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 /**
  * ProctoringTimelineBar — Interactive Session Incident Timeline Scrubber
@@ -21,7 +23,7 @@ export default function ProctoringTimelineBar({ incidents = [], totalDurationMin
           gap: 12,
         }}
       >
-        <span style={{ fontSize: 20 }}>🎬</span>
+        <MotionIcon icon={Film} size={20} color="#34d399" />
         <div>
           <h4 style={{ margin: 0, fontSize: 14, color: "var(--text)", fontWeight: 600 }}>
             Session Timeline Audit: 100% Clean Session
@@ -72,7 +74,7 @@ export default function ProctoringTimelineBar({ incidents = [], totalDurationMin
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 16 }}>🎬</span>
+          <MotionIcon icon={Film} size={18} color="var(--forge)" />
           <h4 style={{ margin: 0, fontSize: 14, color: "var(--text)", fontWeight: 700, fontFamily: "Syne, sans-serif" }}>
             Proctoring Incident Timeline Scrubber
           </h4>

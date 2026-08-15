@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Check, Copy, Rocket, Clock, Zap } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import { connectClashSocket, getClashSocket } from "../../services/clashSocket";
 import api from "../../services/api";
@@ -145,7 +147,15 @@ export default function ClashWaitingRoomPage() {
                 className="btn-press"
                 style={{ padding: "4px 10px", borderRadius: 8, border: "none", background: "var(--surface)", color: "var(--text2)", fontSize: 12, cursor: "pointer" }}
               >
-                {copied ? "Copied! ✓" : "Copy Code 📋"}
+                {copied ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <MotionIcon icon={Check} size={13} color="#34d399" /> Copied!
+                  </span>
+                ) : (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <MotionIcon icon={Copy} size={13} /> Copy Code
+                  </span>
+                )}
               </button>
             </div>
 
@@ -176,7 +186,9 @@ export default function ClashWaitingRoomPage() {
               borderRadius: 20, padding: 20, background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "#fff",
               textAlign: "center", marginBottom: 28, fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 22
             }}>
-              🚀 BOTH PLAYERS READY! Starting in {countdown}...
+              <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <MotionIcon icon={Rocket} size={22} color="#fff" animate="bounce" /> BOTH PLAYERS READY! Starting in {countdown}...
+              </span>
             </div>
           )}
 
@@ -191,8 +203,8 @@ export default function ClashWaitingRoomPage() {
               <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 16, fontWeight: 700, color: "var(--text)", margin: "8px 0 4px" }}>
                 {hostUser?.user_name || "Waiting for host..."}
               </h3>
-              <span style={{ fontSize: 12, fontWeight: 600, color: hostUser?.status === "ready" ? "#34d399" : "var(--text3)" }}>
-                {hostUser?.status === "ready" ? "✓ READY" : "⏳ Joined (Not Ready)"}
+              <span style={{ fontSize: 12, fontWeight: 600, color: hostUser?.status === "ready" ? "#34d399" : "var(--text3)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                {hostUser?.status === "ready" ? <><MotionIcon icon={Check} size={13} color="#34d399" /> READY</> : <><MotionIcon icon={Clock} size={13} color="var(--text3)" /> Joined (Not Ready)</>}
               </span>
             </div>
 
@@ -205,8 +217,8 @@ export default function ClashWaitingRoomPage() {
               <h3 style={{ fontFamily: "Syne, sans-serif", fontSize: 16, fontWeight: 700, color: guestUser ? "var(--text)" : "var(--text3)", margin: "8px 0 4px" }}>
                 {guestUser?.user_name || "Waiting for opponent..."}
               </h3>
-              <span style={{ fontSize: 12, fontWeight: 600, color: guestUser?.status === "ready" ? "#34d399" : "var(--text3)" }}>
-                {guestUser ? (guestUser.status === "ready" ? "✓ READY" : "⏳ Joined (Not Ready)") : "Share room code to invite"}
+              <span style={{ fontSize: 12, fontWeight: 600, color: guestUser?.status === "ready" ? "#34d399" : "var(--text3)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                {guestUser ? (guestUser.status === "ready" ? <><MotionIcon icon={Check} size={13} color="#34d399" /> READY</> : <><MotionIcon icon={Clock} size={13} color="var(--text3)" /> Joined (Not Ready)</>) : "Share room code to invite"}
               </span>
             </div>
           </div>
@@ -227,8 +239,8 @@ export default function ClashWaitingRoomPage() {
               {participants.length < 2
                 ? "Waiting for 2nd Player to Join..."
                 : isReady
-                ? "✓ You are Ready! (Click to cancel)"
-                : "⚡ Click to Set READY"}
+                ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><MotionIcon icon={Check} size={16} /> You are Ready! (Click to cancel)</span>
+                : <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><MotionIcon icon={Zap} size={16} animate="pulse" /> Click to Set READY</span>}
             </button>
           </div>
         </main>

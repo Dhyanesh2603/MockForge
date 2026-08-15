@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Check, Swords, Rocket, OctagonX } from "lucide-react";
+import MotionIcon from "../../components/common/MotionIcon";
 import { useAuth } from "../../context/AuthContext";
 import { getClashSocket, connectClashSocket } from "../../services/clashSocket";
 import api from "../../services/api";
@@ -236,8 +238,8 @@ export default function ClashMatchPage() {
                   <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700, display: "block" }}>Your Submission</span>
                   <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>All questions answered & locked</span>
                 </div>
-                <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: "#10b981", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
-                  ✓ SUBMITTED
+                <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: "#10b981", color: "#fff", fontWeight: 800, fontFamily: "monospace", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <MotionIcon icon={Check} size={12} color="#fff" /> SUBMITTED
                 </span>
               </div>
 
@@ -246,12 +248,12 @@ export default function ClashMatchPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <div>
                     <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 700, display: "block" }}>Opponent Status</span>
-                    <span style={{ fontSize: 11, color: opponentSubmitted ? "#10b981" : "var(--forge)", fontWeight: 600 }}>
-                      {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently working on Question ${opponentIdx + 1} of ${questions.length}`}
+                    <span style={{ fontSize: 11, color: opponentSubmitted ? "#10b981" : "var(--forge)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {opponentSubmitted ? <><MotionIcon icon={Check} size={13} color="#10b981" /> Submitted All Answers!</> : `Currently working on Question ${opponentIdx + 1} of ${questions.length}`}
                     </span>
                   </div>
-                  <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: opponentSubmitted ? "#10b981" : "#0ba5ec", color: "#fff", fontWeight: 800, fontFamily: "monospace" }}>
-                    {opponentSubmitted ? "✓ SUBMITTED" : `ON Q${opponentIdx + 1}/${questions.length}`}
+                  <span style={{ fontSize: 11, padding: "4px 12px", borderRadius: 999, background: opponentSubmitted ? "#10b981" : "#0ba5ec", color: "#fff", fontWeight: 800, fontFamily: "monospace", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    {opponentSubmitted ? <><MotionIcon icon={Check} size={12} color="#fff" /> SUBMITTED</> : `ON Q${opponentIdx + 1}/${questions.length}`}
                   </span>
                 </div>
 
@@ -413,24 +415,26 @@ export default function ClashMatchPage() {
 
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text2)", fontWeight: 700 }}>
-                    ⏳ {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
+                    <MotionIcon icon={Timer} size={14} /> {String(mins).padStart(2, "0")}:{String(secs).padStart(2, "0")}
                   </span>
                   <button
-                    type="button"
                     onClick={() => setShowAbortModal(true)}
                     className="btn-press"
                     style={{
-                      padding: "6px 12px",
-                      borderRadius: 8,
+                      padding: "6px 14px",
+                      borderRadius: 10,
                       background: "rgba(239, 68, 68, 0.12)",
                       border: "1px solid rgba(239, 68, 68, 0.3)",
                       color: "#f87171",
                       fontSize: 12,
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
                     }}
                   >
-                    Exit Challenge
+                    <MotionIcon icon={OctagonX} size={14} color="#f87171" /> End Challenge
                   </button>
                 </div>
               </div>
@@ -538,7 +542,7 @@ export default function ClashMatchPage() {
                     gap: 6,
                   }}
                 >
-                  🛑 End Challenge
+                  <MotionIcon icon={OctagonX} size={14} color="#f87171" /> End Challenge
                 </button>
               </div>
             </div>
@@ -546,9 +550,9 @@ export default function ClashMatchPage() {
             {/* Opponent Progress Bar */}
             <div className="glass" style={{ borderRadius: 16, padding: "12px 18px", border: "1px solid var(--border)", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 18 }}>⚔️</span>
-                <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 600 }}>
-                  Opponent Status: {opponentSubmitted ? "✓ Submitted All Answers!" : `Currently on Q${opponentIdx + 1}/${questions.length || 1}`}
+                <MotionIcon icon={Swords} size={18} color="#f59e0b" animate="hover" />
+                <span style={{ fontSize: 13, color: "var(--text2)", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  Opponent Status: {opponentSubmitted ? <><MotionIcon icon={Check} size={13} color="#10b981" /> Submitted All Answers!</> : `Currently on Q${opponentIdx + 1}/${questions.length || 1}`}
                 </span>
               </div>
               <div style={{ width: 120, height: 6, background: "var(--bg3)", borderRadius: 999, overflow: "hidden" }}>
@@ -616,10 +620,16 @@ export default function ClashMatchPage() {
                   style={{
                     padding: "10px 28px", borderRadius: 12, border: "none",
                     background: "linear-gradient(135deg, #10b981, #059669)", color: "#fff",
-                    fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer"
+                    fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: 14, cursor: "pointer",
+                    display: "inline-flex", alignItems: "center", gap: 8
                   }}
                 >
-                  {isSubmitting ? "Submitting..." : "Submit All Answers 🚀"}
+                  {isSubmitting ? "Submitting..." : (
+                    <>
+                      <span>Submit All Answers</span>
+                      <MotionIcon icon={Rocket} size={16} animate="bounce" />
+                    </>
+                  )}
                 </button>
               )}
             </div>

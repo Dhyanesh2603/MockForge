@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import BrandLogo from "../components/BrandLogo";
+import { Check, Lock, Hand, Swords, Rocket, Volume2, Mic, Clock } from "lucide-react";
+import MotionIcon from "../components/common/MotionIcon";
 
 /* ── Smooth Scroll Reveal Hook ── */
 function useReveal() {
@@ -382,11 +384,11 @@ export default function HomePage() {
                     Enter ANY custom topic. As you answer, the AI analyzes your response depth. Superficial answers trigger clarifying foundational questions, while detailed answers escalate difficulty to Advanced or Mastery.
                   </p>
                   <div style={{ display: "flex", gap: 10 }}>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700 }}>
-                      ✓ Any Custom Subject
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="var(--forge)" /> Any Custom Subject
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
-                      ✓ Real-Time Question Scaling
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="#10b981" /> Real-Time Question Scaling
                     </span>
                   </div>
                 </div>
@@ -418,11 +420,11 @@ export default function HomePage() {
                     Evaluates your performance against specific role rubrics (Frontend, Backend, Data Science, DevOps). Generates a complete SWOT Analysis (Strengths, Weaknesses, Opportunities, Threats) at session end.
                   </p>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
-                      ✓ Strengths & Weaknesses
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="#10b981" /> Strengths & Weaknesses
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(6,182,212,0.12)", color: "var(--accent-cyan)", fontWeight: 700 }}>
-                      ✓ Production Risks (Threats)
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(6,182,212,0.12)", color: "var(--accent-cyan)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="var(--accent-cyan)" /> Production Risks (Threats)
                     </span>
                   </div>
                 </div>
@@ -450,24 +452,25 @@ export default function HomePage() {
                     MockForge simulates real interview conditions. Natural AI voices read questions aloud with selectable voices and speech rates, while Web Speech Recognition dictates your voice answers hands-free directly into the response box.
                   </p>
                   <div style={{ display: "flex", gap: 10 }}>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700 }}>
-                      ✓ Web Speech API TTS
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(99,102,241,0.12)", color: "var(--forge)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="var(--forge)" /> Web Speech API TTS
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
-                      ✓ Hands-Free Voice Answer
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="#10b981" /> Hands-Free Voice Answer
                     </span>
                   </div>
                 </div>
                 <div style={{ padding: 24, borderRadius: 18, background: "var(--bg2)", border: "1px solid var(--border)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontSize: 16 }}>📢</span>
+                    <MotionIcon icon={Volume2} size={16} color="var(--forge)" />
                     <strong style={{ fontSize: 13, color: "var(--text)" }}>AI Voice Question Reader</strong>
                   </div>
                   <p style={{ fontSize: 13, color: "var(--text2)", fontStyle: "italic", margin: "0 0 16px" }}>
                     "Explain the difference between Optimistic vs Pessimistic concurrency control in relational databases."
                   </p>
-                  <div style={{ padding: 12, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", fontSize: 12, color: "#10b981", fontWeight: 700 }}>
-                    🎙️ Voice Dictation: "Optimistic concurrency control assumes no conflicts will occur..."
+                  <div style={{ padding: 12, borderRadius: 10, background: "var(--bg)", border: "1px solid var(--border)", fontSize: 12, color: "#10b981", fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                    <MotionIcon icon={Mic} size={15} color="#10b981" animate="pulse" />
+                    <span>Voice Dictation: "Optimistic concurrency control assumes no conflicts will occur..."</span>
                   </div>
                 </div>
               </div>
@@ -484,19 +487,21 @@ export default function HomePage() {
                     Forge Guard runs 100% in your browser using Google MediaPipe Tasks Vision. It tracks 478 3D facial landmarks and iris centers to detect eye gaze drift, hand/shutter camera cover, and background speech.
                   </p>
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(239,68,68,0.12)", color: "var(--red)", fontWeight: 700 }}>
-                      ✓ 3D Iris Gaze Tracking
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(239,68,68,0.12)", color: "var(--red)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="var(--red)" /> 3D Iris Gaze Tracking
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(245,158,11,0.12)", color: "#f59e0b", fontWeight: 700 }}>
-                      ✓ Camera Cover Auto-Pause
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(245,158,11,0.12)", color: "#f59e0b", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="#f59e0b" /> Camera Cover Auto-Pause
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
-                      ✓ 3-Strike Tab Switch Disqualify
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="#10b981" /> 3-Strike Tab Switch Disqualify
                     </span>
                   </div>
                 </div>
                 <div style={{ padding: 24, borderRadius: 18, background: "var(--bg2)", border: "1px solid var(--border)", textAlign: "center" }}>
-                  <div style={{ fontSize: 42, marginBottom: 8 }}>🖐️</div>
+                  <div style={{ marginBottom: 8 }}>
+                    <MotionIcon icon={Hand} size={42} color="var(--red)" animate="bounce" />
+                  </div>
                   <h4 style={{ margin: "0 0 6px", fontSize: 16, color: "var(--red)", fontWeight: 800 }}>CAMERA OBSTRUCTED</h4>
                   <p style={{ margin: "0 0 14px", fontSize: 12, color: "var(--text2)" }}>
                     Test automatically paused. Uncover camera to resume timer.
@@ -519,11 +524,11 @@ export default function HomePage() {
                     Type ANY custom coding subject. AI generates problem statements with sample test cases and secured hidden test cases across JS, Python, C++, and Java.
                   </p>
                   <div style={{ display: "flex", gap: 10 }}>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(6,182,212,0.12)", color: "var(--accent-cyan)", fontWeight: 700 }}>
-                      ✓ Any Custom Subject
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(6,182,212,0.12)", color: "var(--accent-cyan)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Check} size={13} color="var(--accent-cyan)" /> Any Custom Subject
                     </span>
-                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>
-                      🔒 Secured Hidden Test Cases
+                    <span style={{ fontSize: 12, padding: "4px 12px", borderRadius: 999, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <MotionIcon icon={Lock} size={13} color="#10b981" /> Secured Hidden Test Cases
                     </span>
                   </div>
                 </div>
@@ -534,8 +539,8 @@ export default function HomePage() {
                   <div style={{ color: "#34d399", paddingLeft: 16 }}>// Run Verification...</div>
                   <div style={{ color: "#38bdf8" }}>&#125;</div>
                   <div style={{ marginTop: 12, padding: 8, borderRadius: 8, background: "rgba(16,185,129,0.15)", color: "#34d399", fontWeight: 700 }}>
-                    ✓ Sample Test #1: PASSED (0.02s)<br />
-                    🔒 Hidden Test #1: PASSED (0.01s)
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MotionIcon icon={Check} size={13} color="#34d399" /> Sample Test #1: PASSED (0.02s)</span><br />
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><MotionIcon icon={Lock} size={13} color="#34d399" /> Hidden Test #1: PASSED (0.01s)</span>
                   </div>
                 </div>
               </div>
@@ -554,8 +559,12 @@ export default function HomePage() {
                 </div>
                 <div style={{ padding: 24, borderRadius: 18, background: "var(--bg2)", border: "1px solid var(--border)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)" }}>⚔️ 1v1 Clash Match</span>
-                    <span style={{ fontSize: 13, fontFamily: "monospace", color: "#f59e0b", fontWeight: 800 }}>⏳ 08:45</span>
+                    <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <MotionIcon icon={Swords} size={16} color="#f59e0b" animate="hover" /> 1v1 Clash Match
+                    </span>
+                    <span style={{ fontSize: 13, fontFamily: "monospace", color: "#f59e0b", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      <MotionIcon icon={Clock} size={13} color="#f59e0b" /> 08:45
+                    </span>
                   </div>
                   <div style={{ fontSize: 12, color: "var(--text2)", marginBottom: 8 }}>
                     Opponent Progress: Currently on Q2/3
@@ -708,7 +717,9 @@ export default function HomePage() {
                 display: "inline-block",
               }}
             >
-              Create Account Free 🚀
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                Create Account Free <MotionIcon icon={Rocket} size={18} animate="bounce" />
+              </span>
             </Link>
           </div>
         </section>

@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { FileText, Search, CheckCircle2, Target } from "lucide-react";
+import MotionIcon from "../common/MotionIcon";
 
 /**
  * ResumeParserSection — Candidate Resume & Portfolio Weakness Matcher
@@ -65,7 +67,7 @@ export default function ResumeParserSection({ onResumeParsed = () => {} }) {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-        <span style={{ fontSize: 20 }}>📄</span>
+        <MotionIcon icon={FileText} size={22} color="var(--forge)" animate="hover" />
         <div>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--text)", fontFamily: "Syne, sans-serif" }}>
             AI Resume & Portfolio Weakness Matcher
@@ -110,9 +112,13 @@ export default function ResumeParserSection({ onResumeParsed = () => {} }) {
           fontSize: 13,
           fontWeight: 700,
           cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
         }}
       >
-        {isParsing ? "Analyzing Resume..." : "🔍 Analyze Resume & Tailor Interview"}
+        <MotionIcon icon={Search} size={15} animate={isParsing ? "spin" : "hover"} />
+        <span>{isParsing ? "Analyzing Resume..." : "Analyze Resume & Tailor Interview"}</span>
       </button>
 
       {/* Parsed Result Card */}
@@ -127,8 +133,9 @@ export default function ResumeParserSection({ onResumeParsed = () => {} }) {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--forge)" }}>
-              ✓ Tailored Profile Generated ({parsedData.confidence}% Match)
+            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--forge)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <MotionIcon icon={CheckCircle2} size={15} color="var(--green)" />
+              Tailored Profile Generated ({parsedData.confidence}% Match)
             </span>
             <span style={{ fontSize: 11, fontFamily: "monospace", color: "var(--text3)" }}>
               Role: {parsedData.detectedRole}
@@ -153,9 +160,12 @@ export default function ResumeParserSection({ onResumeParsed = () => {} }) {
                     border: "1px solid rgba(251,191,36,0.3)",
                     color: "#fbbf24",
                     fontWeight: 600,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
                   }}
                 >
-                  🎯 {w}
+                  <MotionIcon icon={Target} size={12} color="#fbbf24" /> {w}
                 </span>
               ))}
             </div>
