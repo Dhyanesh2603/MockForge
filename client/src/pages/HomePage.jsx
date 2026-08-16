@@ -532,7 +532,7 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <div style={{ padding: 20, borderRadius: 18, background: "#0f172a", border: "1px solid var(--border)", fontFamily: "monospace", fontSize: 12 }}>
+                <div style={{ padding: 20, borderRadius: 18, background: "var(--bg3)", border: "1px solid var(--border)", fontFamily: "monospace", fontSize: 12 }}>
                   <div style={{ color: "#94a3b8", marginBottom: 8 }}>// JS / Python / C++ / Java Compiler</div>
                   <div style={{ color: "#38bdf8" }}>function twoSum(nums, target) &#123;</div>
                   <div style={{ color: "#e2e8f0", paddingLeft: 16 }}>const map = new Map();</div>
@@ -696,7 +696,7 @@ export default function HomePage() {
 
         {/* ── FINAL CTA ── */}
         <section style={{ maxWidth: 1060, margin: "0 auto", padding: "40px 24px 100px" }}>
-          <div className="glass glow-blue reveal-scale" style={{ borderRadius: 28, padding: "60px 36px", border: "1px solid rgba(99,102,241,0.3)", textAlign: "center", background: "linear-gradient(145deg, rgba(15,23,42,0.9), rgba(99,102,241,0.12))" }}>
+          <div className="glass glow-blue reveal-scale" style={{ borderRadius: 28, padding: "60px 36px", border: "1px solid rgba(99,102,241,0.3)", textAlign: "center", background: "linear-gradient(145deg, var(--surface), rgba(99,102,241,0.08))" }}>
             <h2 style={{ fontFamily: "Syne, sans-serif", fontWeight: 800, fontSize: "clamp(2rem,4vw,3rem)", margin: "0 0 16px", color: "var(--text)" }}>
               Ready to Ace Your Next Technical Interview?
             </h2>
